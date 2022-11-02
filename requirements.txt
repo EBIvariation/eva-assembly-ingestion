@@ -1,0 +1,4 @@
+git+https://github.com/apriltuesday/eva-common-pyutils.git@EVA-3050
+pyyaml
+requests
+retry
