@@ -43,22 +43,9 @@ def pretty_print(header, table):
 
 
 class AssemblyIngestionJob(AppLogger):
-    """
-    load_tracker:
-        - find source assemblies
-        - get number of studies and variants (?)
-        - update tracking table
-    remap_cluster:
-        - remap all source assemblies in tracker
-        - cluster target assembly
-        - update tracker
-    update_dbs:
-        - update supported assemblies
-        - update metadata (used by webservices)
-        - update contig alias
-    """
     all_tasks = ['load_tracker', 'remap_cluster', 'update_dbs']
     tracking_table = 'eva_progress_tracker.remapping_tracker'
+    # TODO is there a notion of versioning we should have here?
     default_release_version = None
 
     def __init__(self, taxonomy, target_assembly, source_of_assembly):
@@ -83,36 +70,52 @@ class AssemblyIngestionJob(AppLogger):
             self.update_dbs()
 
     def load_tracker(self):
-        """Load the tracking table with the source assemblies for this taxonomy"""
-        # TODO check whether there's anything in the tracker already for target_assembly
+        """Load the tracking table with the source assemblies for this taxonomy. Will not load anything if jobs in
+        the tracker already exist for this taxonomy/target assembly pair."""
+        header_to_print = (
+            'Sources', 'Taxonomy', 'Scientific Name', 'Assembly', 'Target Assembly', 'Num Studies', 'Status')
+        existing_jobs = self.get_job_information_from_tracker()
+        if existing_jobs:
+            self.info(f'Jobs already exist for taxonomy {self.taxonomy} and target assembly {self.target_assembly}, '
+                      f'not loading anything new.')
+            pretty_print(header_to_print, existing_jobs)
+            return
+
         column_names = ('source', 'taxonomy', 'scientific_name', 'origin_assembly_accession', 'assembly_accession',
-                        'remapping_version', 'release_version', 'num_studies', 'num_ss_ids', 'study_accessions')
-        header_to_print = ('Sources', 'Taxonomy', 'Scientific name',  'Assembly', 'Target Assembly', 'Num Studies')
+                        'remapping_version', 'release_version', 'num_studies', 'num_ss_ids', 'study_accessions',
+                        'remapping_status')
         rows = []
         rows_to_print = []
         for source_assembly, projects in self.get_source_assemblies_and_projects():
             rows.append(('EVA', self.taxonomy, self.scientific_name, source_assembly, self.target_assembly,
-                         1, self.default_release_version, len(projects), 1, None))
-            rows_to_print.append(
-                ('EVA', self.taxonomy, self.scientific_name, source_assembly, self.target_assembly, len(projects)))
+                         1, self.default_release_version, len(projects), 1, None, 'Pending'))
+            rows_to_print.append(('EVA', self.taxonomy, self.scientific_name, source_assembly, self.target_assembly,
+                                  len(projects), 'Pending'))
         for source_assembly, num_studies in self.get_source_assemblies_and_num_studies_dbsnp():
             rows.append(('DBSNP', self.taxonomy, self.scientific_name, source_assembly, self.target_assembly,
-                         1, self.default_release_version, num_studies, 1, None))
-            rows_to_print.append(
-                ('DBSNP', self.taxonomy, self.scientific_name, source_assembly, self.target_assembly, num_studies))
+                         1, self.default_release_version, num_studies, 1, None, 'Pending'))
+            rows_to_print.append(('DBSNP', self.taxonomy, self.scientific_name, source_assembly, self.target_assembly,
+                                  num_studies, 'Pending'))
         if len(rows) == 0:
-            print(f'Nothing to remap for taxonomy {self.taxonomy} and target assembly {self.target_assembly}')
+            self.info(f'Nothing to process for taxonomy {self.taxonomy} and target assembly {self.target_assembly}')
             return
         with get_metadata_connection_handle(self.maven_profile, self.private_settings_file) as pg_conn:
             with pg_conn.cursor() as cursor:
-                insert_query = (
-                    f"INSERT INTO {self.tracking_table} ({','.join(column_names)}) VALUES %s "
-                    f"ON CONFLICT () "
-                    f"DO UPDATE SET "
-                )
-                # TODO fill in the conflict clause
+                insert_query = f"INSERT INTO {self.tracking_table} ({','.join(column_names)}) VALUES %s "
                 execute_values(cursor, insert_query, rows)
         pretty_print(header_to_print, rows_to_print)
+
+    def get_job_information_from_tracker(self):
+        """Gets jobs from tracker by target assembly, taxonomy, and release version"""
+        query = (
+            f"SELECT source, taxonomy, scientific_name, origin_assembly_accession, assembly_accession, "
+            f"num_studies, remapping_status "
+            f"FROM eva_progress_tracker.remapping_tracker "
+            f"WHERE release_version={self.default_release_version} "
+            f"AND assembly_accession='{self.target_assembly}' AND taxonomy={self.taxonomy}"
+        )
+        with get_metadata_connection_handle(self.maven_profile, self.private_settings_file) as pg_conn:
+            return get_all_results_for_query(pg_conn, query)
 
     def get_source_assemblies_and_projects(self):
         """Query metadata for all public projects with this taxonomy, of these getting all reference accessions
@@ -140,11 +143,21 @@ class AssemblyIngestionJob(AppLogger):
             return get_all_results_for_query(pg_conn, query)
 
     def run_remapping_and_clustering(self, instance, resume):
-        # TODO get sources from tracking table and only run if not complete to ensure idempotent
-        # TODO use resume appropriately
-        source_assemblies = []
+        """Run remapping and clustering for all source assemblies in the tracker marked as not Complete, resuming
+        the nextflow process if specified. (Note that this will also resume or rerun anything marked as Failed.)"""
+        source_assemblies = self.get_incomplete_assemblies()
+        self.info(f'Running remapping and clustering for the following assemblies: {source_assemblies}')
         for source_assembly in source_assemblies:
             self.process_one_assembly(source_assembly, instance, resume)
+
+    def get_incomplete_assemblies(self):
+        incomplete_assemblies = []
+        for row in self.get_job_information_from_tracker():
+            source_assembly = row[3]
+            status = row[6]
+            if status != 'Completed':
+                incomplete_assemblies.append(source_assembly)
+        return incomplete_assemblies
 
     def process_one_assembly(self, source_assembly, instance, resume):
         self.set_status_start(source_assembly)
@@ -202,7 +215,7 @@ class AssemblyIngestionJob(AppLogger):
             f"UPDATE {self.tracking_table} "
             f"SET remapping_status='{status}', remapping_start = '{datetime.now().isoformat()}' "
             f"WHERE release_version={self.default_release_version} "
-            f"AND origin_assembly_accession='{source_assembly}' AND taxonomy='{self.taxonomy}'"
+            f"AND origin_assembly_accession='{source_assembly}' AND taxonomy={self.taxonomy}"
         )
         with get_metadata_connection_handle(self.maven_profile, self.private_settings_file) as pg_conn:
             execute_query(pg_conn, query)
@@ -285,16 +298,29 @@ class AssemblyIngestionJob(AppLogger):
 
     def update_dbs(self):
         """Update all relevant databases to reflect the new assembly."""
-        # TODO check tracking table if status is complete before updating
+        incomplete_assemblies = self.get_incomplete_assemblies()
+        if incomplete_assemblies:
+            self.info(f'Processing for the following source assemblies is not yet complete: {incomplete_assemblies}')
+            self.info('Not updating databases.')
+            return
         self.add_to_supported_assemblies()
         self.add_to_metadata()
         self.add_to_contig_alias()
 
     def add_to_supported_assemblies(self):
-        # TODO not idempotent - if target_assembly is already the current don't do anything!
         today = datetime.date.today().strftime('%Y-%m-%d')
         with get_metadata_connection_handle(self.maven_profile, self.private_settings_file) as pg_conn:
-            # First deprecate the last current assembly
+            # First check if the current assembly is already target - if so don't do anything
+            current_query = (
+                f"SELECT assembly_id FROM evapro.supported_assembly_tracker "
+                f"WHERE taxonomy_id={self.taxonomy} AND current=true;"
+            )
+            results = get_all_results_for_query(pg_conn, current_query)
+            if len(results) > 0 and results[0][0] == self.target_assembly:
+                self.info(f'Current assembly for taxonomy {self.taxonomy} is already {self.target_assembly}')
+                return
+
+            # Deprecate the last current assembly
             update_query = (
                 f"UPDATE evapro.supported_assembly_tracker "
                 f"SET current=false, end_date='{today}' "
