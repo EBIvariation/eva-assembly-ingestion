@@ -28,7 +28,9 @@ from ebi_eva_common_pyutils.taxonomy.taxonomy import get_scientific_name_from_ta
 from psycopg2.extras import execute_values
 
 from eva_assembly_ingestion.parse_counts import count_variants_extracted, count_variants_remapped, count_variants_ingested
-from eva_assembly_ingestion.create_properties import write_remapping_process_props_template, write_clustering_props_template
+from eva_assembly_ingestion.create_properties import write_remapping_process_props_template, \
+    write_clustering_props_template, create_extraction_properties, create_ingestion_properties, \
+    create_clustering_properties
 
 
 def pretty_print(header, table):
@@ -165,7 +167,8 @@ class AssemblyIngestionJob(AppLogger):
         nextflow_remapping_process = os.path.join(os.path.dirname(__file__), 'nextflow', 'remap_cluster.nf')
         assembly_directory = os.path.join(base_directory, self.taxonomy, source_assembly)
         work_dir = os.path.join(assembly_directory, 'work')
-        prop_template_file = os.path.join(assembly_directory, 'template.properties')
+        extraction_properties_file = os.path.join(assembly_directory, 'remapping_extraction.properties')
+        ingestion_properties_file = os.path.join(assembly_directory, 'remapping_ingestion.properties')
         clustering_template_file = os.path.join(assembly_directory, 'clustering_template.properties')
         os.makedirs(work_dir, exist_ok=True)
         remapping_log = os.path.join(assembly_directory, 'remapping_process.log')
@@ -177,8 +180,9 @@ class AssemblyIngestionJob(AppLogger):
             'species_name': self.scientific_name,
             'output_dir': assembly_directory,
             'genome_assembly_dir': cfg['genome_downloader']['output_directory'],
-            'template_properties': write_remapping_process_props_template(prop_template_file),
-            'clustering_template_properties': write_clustering_props_template(clustering_template_file, instance),
+            'extraction_properties': create_extraction_properties(extraction_properties_file),
+            'ingestion_properties': create_ingestion_properties(ingestion_properties_file),
+            'clustering_properties': create_clustering_properties(clustering_template_file),
             'clustering_instance': instance,
             'remapping_config': cfg.config_file,
             'remapping_required': self.check_remapping_required(source_assembly)

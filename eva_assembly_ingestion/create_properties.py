@@ -16,6 +16,19 @@ from ebi_eva_common_pyutils.config_utils import get_properties_from_xml_file, ge
     get_accession_pg_creds_for_profile
 
 
+# TODO refactor this
+def create_extraction_properties(output_file):
+    return output_file
+
+
+def create_ingestion_properties(output_file):
+    return output_file
+
+
+def create_clustering_properties(output_file):
+    return output_file
+
+
 def write_remapping_process_props_template(template_file_path):
     mongo_host, mongo_user, mongo_pass = get_primary_mongo_creds_for_profile(cfg['maven']['environment'],
                                                                              cfg['maven']['settings_file'])
