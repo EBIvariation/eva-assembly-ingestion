@@ -1,10 +1,24 @@
 #!/usr/bin/env python
+
+# Copyright 2022 EMBL - European Bioinformatics Institute
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 from argparse import ArgumentParser, ArgumentError
 
 from ebi_eva_common_pyutils.logger import logging_config
 
 from eva_assembly_ingestion.config import load_config
-from eva_assembly_ingestion.job import TaxonomyRemappingJob
+from eva_assembly_ingestion.job import AssemblyIngestionJob
 
 
 def main():
@@ -13,11 +27,11 @@ def main():
     argparse.add_argument('--target_assembly', help='New target assembly accession')
     argparse.add_argument('--source_of_assembly', default='Ensembl',
                           help='Source of new target assembly (default Ensembl)')
+    argparse.add_argument('--tasks', required=False, type=str, nargs='+',
+                          default=AssemblyIngestionJob.all_tasks, choices=AssemblyIngestionJob.all_tasks,
+                          help='Task or set of tasks to perform (defaults to all)')
     argparse.add_argument('--instance', help="Accessioning instance id for clustering", required=False, default=6,
                           type=int, choices=range(1, 13))
-    argparse.add_argument('--tasks', required=False, type=str, nargs='+',
-                          default=TaxonomyRemappingJob.all_tasks, choices=TaxonomyRemappingJob.all_tasks,
-                          help='Task or set of tasks to perform (defaults to all)')
     argparse.add_argument('--resume', help='If a process has been run already this will resume it.',
                           action='store_true', default=False)
     args = argparse.parse_args()
@@ -27,7 +41,7 @@ def main():
     if not args.taxonomy or not args.target_assembly:
         raise ArgumentError(None, 'Must provide both --taxonomy and --target_assembly')
 
-    job = TaxonomyRemappingJob(args.taxonomy, args.target_assembly, args.source_of_assembly)
+    job = AssemblyIngestionJob(args.taxonomy, args.target_assembly, args.source_of_assembly)
     logging_config.add_stdout_handler()
 
     job.run_all(args.tasks)

@@ -1,0 +1,15 @@
+<settings>
+    <profiles>
+        <profile>
+            <id>production</id>
+            <properties>
+                <eva.evapro.datasource>test</eva.evapro.datasource>
+                <eva.evapro.user>test</eva.evapro.user>
+                <eva.evapro.password>password</eva.evapro.password>
+                <eva.evapro.jdbc.url>jdbc:postgresql://localhost:5432/vrnevadev</eva.evapro.jdbc.url>
+            </properties>
+        </profile>
+
+    </profiles>
+
+</settings>
