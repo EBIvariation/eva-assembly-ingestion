@@ -1,0 +1,141 @@
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::        (v2.1.0.RELEASE)
+
+2022-10-06 14:43:56.907  INFO 3734186 --- [           main] u.a.e.eva.remapping.ingest.Application   : Starting Application v0.6.12 on hl-codon-40-02 with PID 3734186 (/nfs/production/keane/eva/software/eva-accession/remapping_ingestion_production/eva-remapping-ingest-0.6.12-73aa361-production.jar started by eva_etl in /nfs/production/keane/eva/variant_remapping/2022-08_release4/10090/GCA_000001635.1/work/8c/23e16013871abd309fc39c927b396f)
+2022-10-06 14:43:56.913  INFO 3734186 --- [           main] u.a.e.eva.remapping.ingest.Application   : No active profile set, falling back to default profiles: default
+2022-10-06 14:43:57.792  INFO 3734186 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode!
+2022-10-06 14:43:57.793  INFO 3734186 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data repositories in DEFAULT mode.
+2022-10-06 14:43:57.922  INFO 3734186 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 119ms. Found 10 repository interfaces.
+2022-10-06 14:43:58.216  INFO 3734186 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode!
+2022-10-06 14:43:58.218  INFO 3734186 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data repositories in DEFAULT mode.
+2022-10-06 14:43:58.251  INFO 3734186 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 29ms. Found 0 repository interfaces.
+2022-10-06 14:43:58.871  INFO 3734186 --- [           main] trationDelegate$BeanPostProcessorChecker : Bean 'org.springframework.transaction.annotation.ProxyTransactionManagementConfiguration' of type [org.springframework.transaction.annotation.ProxyTransactionManagementConfiguration$$EnhancerBySpringCGLIB$$110b6e3e] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+2022-10-06 14:43:59.732  INFO 3734186 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 8080 (http)
+2022-10-06 14:43:59.784  INFO 3734186 --- [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2022-10-06 14:43:59.784  INFO 3734186 --- [           main] org.apache.catalina.core.StandardEngine  : Starting Servlet Engine: Apache Tomcat/9.0.12
+2022-10-06 14:43:59.806  INFO 3734186 --- [           main] o.a.catalina.core.AprLifecycleListener   : The APR based Apache Tomcat Native library which allows optimal performance in production environments was not found on the java.library.path: [/ebi/lsf/codon/10.1/linux3.10-glibc2.17-x86_64/lib:/hps/software/spack/opt/spack/linux-centos8-sandybridge/gcc-9.3.0/openjdk-1.8.0_265-b01-w3gaafytzkvmisnbk72gvds7m4m6ddmy/lib:/nfs/production/keane/eva/software/libffi/lib:/nfs/production/keane/eva/software/libffi/lib64:/usr/lib/oracle/19.9/client64/lib:/usr/java/packages/lib/amd64:/usr/lib64:/lib64:/lib:/usr/lib]
+2022-10-06 14:44:00.067  INFO 3734186 --- [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2022-10-06 14:44:00.068  INFO 3734186 --- [           main] o.s.web.context.ContextLoader            : Root WebApplicationContext: initialization completed in 3063 ms
+2022-10-06 14:44:00.100  INFO 3734186 --- [           main] o.s.b.w.servlet.ServletRegistrationBean  : Servlet dispatcherServlet mapped to [/]
+2022-10-06 14:44:00.105  INFO 3734186 --- [           main] o.s.b.w.servlet.FilterRegistrationBean   : Mapping filter: 'characterEncodingFilter' to: [/*]
+2022-10-06 14:44:00.106  INFO 3734186 --- [           main] o.s.b.w.servlet.FilterRegistrationBean   : Mapping filter: 'hiddenHttpMethodFilter' to: [/*]
+2022-10-06 14:44:00.106  INFO 3734186 --- [           main] o.s.b.w.servlet.FilterRegistrationBean   : Mapping filter: 'formContentFilter' to: [/*]
+2022-10-06 14:44:00.106  INFO 3734186 --- [           main] o.s.b.w.servlet.FilterRegistrationBean   : Mapping filter: 'requestContextFilter' to: [/*]
+2022-10-06 14:44:00.284  INFO 3734186 --- [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2022-10-06 14:44:00.429  INFO 3734186 --- [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2022-10-06 14:44:00.525  INFO 3734186 --- [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [
+	name: default
+	...]
+2022-10-06 14:44:00.651  INFO 3734186 --- [           main] org.hibernate.Version                    : HHH000412: Hibernate Core {5.3.7.Final}
+2022-10-06 14:44:00.653  INFO 3734186 --- [           main] org.hibernate.cfg.Environment            : HHH000206: hibernate.properties not found
+2022-10-06 14:44:00.976  INFO 3734186 --- [           main] o.hibernate.annotations.common.Version   : HCANN000001: Hibernate Commons Annotations {5.0.4.Final}
+2022-10-06 14:44:01.293  INFO 3734186 --- [           main] org.hibernate.dialect.Dialect            : HHH000400: Using dialect: org.hibernate.dialect.PostgreSQL95Dialect
+2022-10-06 14:44:01.463  INFO 3734186 --- [           main] o.h.e.j.e.i.LobCreatorBuilderImpl        : HHH000421: Disabling contextual LOB creation as hibernate.jdbc.lob.non_contextual_creation is true
+2022-10-06 14:44:01.472  INFO 3734186 --- [           main] org.hibernate.type.BasicTypeRegistry     : HHH000270: Type registration [java.util.UUID] overrides previous : org.hibernate.type.UUIDBinaryType@50dfbc58
+2022-10-06 14:44:01.732  INFO 3734186 --- [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2022-10-06 14:44:02.091  INFO 3734186 --- [           main] org.mongodb.driver.cluster               : Cluster created with settings {hosts=[mongos-hx-eva-pro-001.ebi.ac.uk:27017], mode=MULTIPLE, requiredClusterType=UNKNOWN, serverSelectionTimeout='30000 ms', maxWaitQueueSize=500}
+2022-10-06 14:44:02.091  INFO 3734186 --- [           main] org.mongodb.driver.cluster               : Adding discovered server mongos-hx-eva-pro-001.ebi.ac.uk:27017 to client view of cluster
+2022-10-06 14:44:02.180  INFO 3734186 --- [ebi.ac.uk:27017] org.mongodb.driver.connection            : Opened connection [connectionId{localValue:1}] to mongos-hx-eva-pro-001.ebi.ac.uk:27017
+2022-10-06 14:44:02.190  INFO 3734186 --- [ebi.ac.uk:27017] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=mongos-hx-eva-pro-001.ebi.ac.uk:27017, type=SHARD_ROUTER, state=CONNECTED, ok=true, version=ServerVersion{versionList=[4, 0, 21]}, minWireVersion=0, maxWireVersion=7, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=7677077}
+2022-10-06 14:44:02.192  INFO 3734186 --- [ebi.ac.uk:27017] org.mongodb.driver.cluster               : Discovered cluster type of SHARDED
+2022-10-06 14:44:02.477  WARN 3734186 --- [           main] o.s.b.c.l.AbstractListenerFactoryBean    : org.springframework.batch.item.ItemStreamReader is an interface. The implementing class will not be queried for annotation based listener configurations. If using @StepScope on a @Bean method, be sure to return the implementing class so listener annotations can be used.
+2022-10-06 14:44:02.481  WARN 3734186 --- [           main] o.s.b.c.l.AbstractListenerFactoryBean    : org.springframework.batch.item.ItemProcessor is an interface. The implementing class will not be queried for annotation based listener configurations. If using @StepScope on a @Bean method, be sure to return the implementing class so listener annotations can be used.
+2022-10-06 14:44:02.659  WARN 3734186 --- [           main] o.s.d.m.c.m.BasicMongoPersistentProperty : Customizing field name for id property not allowed! Custom name will not be considered!
+2022-10-06 14:44:02.813  INFO 3734186 --- [           main] org.mongodb.driver.connection            : Opened connection [connectionId{localValue:2}] to mongos-hx-eva-pro-001.ebi.ac.uk:27017
+2022-10-06 14:44:02.986  WARN 3734186 --- [           main] o.s.d.m.c.m.BasicMongoPersistentProperty : Customizing field name for id property not allowed! Custom name will not be considered!
+2022-10-06 14:44:04.008  WARN 3734186 --- [           main] o.s.d.m.c.m.BasicMongoPersistentProperty : Customizing field name for id property not allowed! Custom name will not be considered!
+2022-10-06 14:44:04.070  WARN 3734186 --- [           main] o.s.d.m.c.m.BasicMongoPersistentProperty : Customizing field name for id property not allowed! Custom name will not be considered!
+2022-10-06 14:44:05.880  INFO 3734186 --- [           main] o.s.b.c.r.s.JobRepositoryFactoryBean     : No database type set, using meta data indicating: POSTGRES
+2022-10-06 14:44:05.905  INFO 3734186 --- [           main] o.s.b.c.l.support.SimpleJobLauncher      : No TaskExecutor has been set, defaulting to synchronous executor.
+2022-10-06 14:44:06.263  INFO 3734186 --- [           main] o.s.s.concurrent.ThreadPoolTaskExecutor  : Initializing ExecutorService 'applicationTaskExecutor'
+2022-10-06 14:44:06.657  WARN 3734186 --- [           main] aWebConfiguration$JpaWebMvcConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2022-10-06 14:44:06.931  INFO 3734186 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port(s): 8080 (http) with context path ''
+2022-10-06 14:44:06.935  INFO 3734186 --- [           main] u.a.e.eva.remapping.ingest.Application   : Started Application in 10.976 seconds (JVM running for 13.803)
+2022-10-06 14:44:07.082  INFO 3734186 --- [           main] .e.r.i.r.IngestRemappedCommandLineRunner : Running job 'INGEST_REMAPPED_VARIANTS_FROM_VCF_JOB' with parameters: {remappedFrom=GCA_000001635.1, assemblyAccession=GCA_000001635.9, vcf=GCA_000001635.1_eva_remapped.vcf, loadTo=EVA, assemblyReportUrl=file:GCA_000001635.9_assembly_report_custom.txt, remappingVersion=1.0, chunkSize=100}
+2022-10-06 14:44:07.241  INFO 3734186 --- [           main] o.s.b.c.l.support.SimpleJobLauncher      : Job: [SimpleJob: [name=INGEST_REMAPPED_VARIANTS_FROM_VCF_JOB]] launched with the following parameters: [{assemblyReportUrl=file:GCA_000001635.9_assembly_report_custom.txt, remappedFrom=GCA_000001635.1, remappingVersion=1.0, loadTo=EVA, chunkSize=100, run.id=5, vcf=GCA_000001635.1_eva_remapped.vcf, assemblyAccession=GCA_000001635.9}]
+2022-10-06 14:44:07.265  INFO 3734186 --- [           main] o.s.batch.core.job.SimpleStepHandler     : Executing step: [STORE_REMAPPING_METADATA_STEP]
+2022-10-06 14:44:07.407  INFO 3734186 --- [           main] o.s.batch.core.job.SimpleStepHandler     : Executing step: [INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP]
+2022-10-06 14:44:08.233  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 100, items written = 100
+2022-10-06 14:44:08.713  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 200, items written = 200
+2022-10-06 14:44:09.133  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 300, items written = 300
+2022-10-06 14:44:09.555  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 400, items written = 400
+2022-10-06 14:44:09.900  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 500, items written = 500
+2022-10-06 14:44:10.317  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 600, items written = 600
+2022-10-06 14:44:10.580  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 700, items written = 700
+2022-10-06 14:44:10.867  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 800, items written = 800
+2022-10-06 14:44:11.120  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 900, items written = 900
+2022-10-06 14:44:11.350  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 1000, items written = 1000
+2022-10-06 14:44:11.578  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 1100, items written = 1100
+2022-10-06 14:44:11.861  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 1200, items written = 1200
+2022-10-06 14:44:12.106  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 1300, items written = 1300
+2022-10-06 14:44:12.321  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 1400, items written = 1400
+2022-10-06 14:44:12.514  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 1500, items written = 1500
+2022-10-06 14:44:12.668  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 1600, items written = 1600
+2022-10-06 14:44:12.896  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 1700, items written = 1700
+2022-10-06 14:44:13.046  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 1800, items written = 1800
+2022-10-06 14:44:13.272  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 1900, items written = 1900
+2022-10-06 14:44:13.501  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 2000, items written = 2000
+2022-10-06 14:44:13.718  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 2100, items written = 2100
+2022-10-06 14:44:13.934  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 2200, items written = 2200
+2022-10-06 14:44:14.137  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 2300, items written = 2300
+2022-10-06 14:44:14.388  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 2400, items written = 2400
+2022-10-06 14:44:14.552  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 2500, items written = 2500
+2022-10-06 14:44:14.814  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 2600, items written = 2600
+2022-10-06 14:44:15.090  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 2700, items written = 2700
+2022-10-06 14:44:15.267  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 2800, items written = 2800
+2022-10-06 14:44:15.444  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 2900, items written = 2900
+2022-10-06 14:44:15.649  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 3000, items written = 3000
+2022-10-06 14:44:15.844  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 3100, items written = 3100
+2022-10-06 14:44:16.040  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 3200, items written = 3200
+2022-10-06 14:44:16.245  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 3300, items written = 3300
+2022-10-06 14:44:16.423  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 3400, items written = 3400
+2022-10-06 14:44:16.591  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 3500, items written = 3500
+2022-10-06 14:44:16.746  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 3600, items written = 3600
+2022-10-06 14:44:16.919  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 3700, items written = 3700
+2022-10-06 14:44:17.083  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 3800, items written = 3800
+2022-10-06 14:44:17.305  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 3900, items written = 3900
+2022-10-06 14:44:17.446  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 4000, items written = 4000
+2022-10-06 14:44:17.596  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 4100, items written = 4100
+2022-10-06 14:44:17.741  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 4200, items written = 4200
+2022-10-06 14:44:17.898  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 4300, items written = 4300
+2022-10-06 14:44:18.093  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 4400, items written = 4400
+2022-10-06 14:44:18.306  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 4500, items written = 4500
+2022-10-06 14:44:18.472  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 4600, items written = 4600
+2022-10-06 14:44:18.626  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 4700, items written = 4700
+2022-10-06 14:44:18.802  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 4800, items written = 4800
+2022-10-06 14:44:18.965  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 4900, items written = 4900
+2022-10-06 14:44:19.134  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 5000, items written = 5000
+2022-10-06 14:44:19.262  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 5100, items written = 5100
+2022-10-06 14:44:19.444  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 5200, items written = 5200
+2022-10-06 14:44:19.643  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 5300, items written = 5300
+2022-10-06 14:44:19.800  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 5400, items written = 5400
+2022-10-06 14:44:19.940  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 5500, items written = 5500
+2022-10-06 14:44:20.124  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 5600, items written = 5600
+2022-10-06 14:44:20.264  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 5700, items written = 5700
+2022-10-06 14:44:20.424  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 5800, items written = 5800
+2022-10-06 14:44:20.635  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 5900, items written = 5900
+2022-10-06 14:44:20.799  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 6000, items written = 6000
+2022-10-06 14:44:20.943  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 6100, items written = 6100
+2022-10-06 14:44:21.128  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 6200, items written = 6200
+2022-10-06 14:44:21.385  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 6300, items written = 6300
+2022-10-06 14:44:21.579  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 6400, items written = 6400
+2022-10-06 14:44:21.734  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 6500, items written = 6500
+2022-10-06 14:44:21.906  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 6600, items written = 6600
+2022-10-06 14:44:22.080  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 6700, items written = 6700
+2022-10-06 14:44:22.280  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 6800, items written = 6800
+2022-10-06 14:44:22.482  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 6900, items written = 6900
+2022-10-06 14:44:22.683  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 7000, items written = 7000
+2022-10-06 14:44:22.762  INFO 3734186 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP: Items read = 7002, items written = 7002
+2022-10-06 14:44:22.763  INFO 3734186 --- [           main] u.a.e.e.r.i.b.l.RemappingIngestCounts    : Step INGEST_REMAPPED_VARIANTS_FROM_VCF_STEP finished: Items (remapped ss) read = 7002, ss ingested = 7002, ss skipped (duplicate) = 0
+2022-10-06 14:44:22.769  INFO 3734186 --- [           main] o.s.b.c.l.support.SimpleJobLauncher      : Job: [SimpleJob: [name=INGEST_REMAPPED_VARIANTS_FROM_VCF_JOB]] completed with the following parameters: [{assemblyReportUrl=file:GCA_000001635.9_assembly_report_custom.txt, remappedFrom=GCA_000001635.1, remappingVersion=1.0, loadTo=EVA, chunkSize=100, run.id=5, vcf=GCA_000001635.1_eva_remapped.vcf, assemblyAccession=GCA_000001635.9}] and the following status: [COMPLETED]
+2022-10-06 14:44:22.776  INFO 3734186 --- [           main] o.s.s.concurrent.ThreadPoolTaskExecutor  : Shutting down ExecutorService 'applicationTaskExecutor'
+2022-10-06 14:44:22.785  INFO 3734186 --- [           main] org.mongodb.driver.connection            : Closed connection [connectionId{localValue:2}] to mongos-hx-eva-pro-001.ebi.ac.uk:27017 because the pool has been closed.
+2022-10-06 14:44:22.787  INFO 3734186 --- [           main] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2022-10-06 14:44:22.789  INFO 3734186 --- [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2022-10-06 14:44:22.810  INFO 3734186 --- [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.

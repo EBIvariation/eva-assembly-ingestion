@@ -1,0 +1,86 @@
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::        (v2.1.0.RELEASE)
+
+2022-10-06 14:21:27.370  INFO 2826374 --- [           main] u.a.e.eva.remapping.source.Application   : Starting Application v0.5.5 on hl-codon-43-03 with PID 2826374 (/nfs/production/keane/eva/software/eva-accession/remapping_exporter_production/eva-remapping-get-source-0.5.5-6e6b106.jar started by eva_etl in /nfs/production/keane/eva/variant_remapping/2022-08_release4/10090/GCA_000001635.1/work/18/cfdc16bde6581d1985b993d33e2444)
+2022-10-06 14:21:27.375  INFO 2826374 --- [           main] u.a.e.eva.remapping.source.Application   : No active profile set, falling back to default profiles: default
+2022-10-06 14:21:28.289  INFO 2826374 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode!
+2022-10-06 14:21:28.290  INFO 2826374 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data repositories in DEFAULT mode.
+2022-10-06 14:21:28.418  INFO 2826374 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 116ms. Found 10 repository interfaces.
+2022-10-06 14:21:28.722  INFO 2826374 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode!
+2022-10-06 14:21:28.724  INFO 2826374 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data repositories in DEFAULT mode.
+2022-10-06 14:21:28.752  INFO 2826374 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 25ms. Found 0 repository interfaces.
+2022-10-06 14:21:29.410  INFO 2826374 --- [           main] trationDelegate$BeanPostProcessorChecker : Bean 'org.springframework.transaction.annotation.ProxyTransactionManagementConfiguration' of type [org.springframework.transaction.annotation.ProxyTransactionManagementConfiguration$$EnhancerBySpringCGLIB$$5df74f45] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+2022-10-06 14:21:30.170  INFO 2826374 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 8080 (http)
+2022-10-06 14:21:30.211  INFO 2826374 --- [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2022-10-06 14:21:30.211  INFO 2826374 --- [           main] org.apache.catalina.core.StandardEngine  : Starting Servlet Engine: Apache Tomcat/9.0.12
+2022-10-06 14:21:30.228  INFO 2826374 --- [           main] o.a.catalina.core.AprLifecycleListener   : The APR based Apache Tomcat Native library which allows optimal performance in production environments was not found on the java.library.path: [/ebi/lsf/codon/10.1/linux3.10-glibc2.17-x86_64/lib:/hps/software/spack/opt/spack/linux-centos8-sandybridge/gcc-9.3.0/openjdk-1.8.0_265-b01-w3gaafytzkvmisnbk72gvds7m4m6ddmy/lib:/nfs/production/keane/eva/software/libffi/lib:/nfs/production/keane/eva/software/libffi/lib64:/usr/lib/oracle/19.9/client64/lib:/usr/java/packages/lib/amd64:/usr/lib64:/lib64:/lib:/usr/lib]
+2022-10-06 14:21:30.489  INFO 2826374 --- [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2022-10-06 14:21:30.489  INFO 2826374 --- [           main] o.s.web.context.ContextLoader            : Root WebApplicationContext: initialization completed in 3036 ms
+2022-10-06 14:21:30.521  INFO 2826374 --- [           main] o.s.b.w.servlet.ServletRegistrationBean  : Servlet dispatcherServlet mapped to [/]
+2022-10-06 14:21:30.525  INFO 2826374 --- [           main] o.s.b.w.servlet.FilterRegistrationBean   : Mapping filter: 'characterEncodingFilter' to: [/*]
+2022-10-06 14:21:30.526  INFO 2826374 --- [           main] o.s.b.w.servlet.FilterRegistrationBean   : Mapping filter: 'hiddenHttpMethodFilter' to: [/*]
+2022-10-06 14:21:30.526  INFO 2826374 --- [           main] o.s.b.w.servlet.FilterRegistrationBean   : Mapping filter: 'formContentFilter' to: [/*]
+2022-10-06 14:21:30.526  INFO 2826374 --- [           main] o.s.b.w.servlet.FilterRegistrationBean   : Mapping filter: 'requestContextFilter' to: [/*]
+2022-10-06 14:21:30.748  INFO 2826374 --- [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2022-10-06 14:21:30.883  INFO 2826374 --- [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2022-10-06 14:21:30.976  INFO 2826374 --- [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [
+	name: default
+	...]
+2022-10-06 14:21:31.089  INFO 2826374 --- [           main] org.hibernate.Version                    : HHH000412: Hibernate Core {5.3.7.Final}
+2022-10-06 14:21:31.092  INFO 2826374 --- [           main] org.hibernate.cfg.Environment            : HHH000206: hibernate.properties not found
+2022-10-06 14:21:31.383  INFO 2826374 --- [           main] o.hibernate.annotations.common.Version   : HCANN000001: Hibernate Commons Annotations {5.0.4.Final}
+2022-10-06 14:21:31.755  INFO 2826374 --- [           main] org.hibernate.dialect.Dialect            : HHH000400: Using dialect: org.hibernate.dialect.PostgreSQL95Dialect
+2022-10-06 14:21:31.896  INFO 2826374 --- [           main] o.h.e.j.e.i.LobCreatorBuilderImpl        : HHH000421: Disabling contextual LOB creation as hibernate.jdbc.lob.non_contextual_creation is true
+2022-10-06 14:21:31.903  INFO 2826374 --- [           main] org.hibernate.type.BasicTypeRegistry     : HHH000270: Type registration [java.util.UUID] overrides previous : org.hibernate.type.UUIDBinaryType@6057aebb
+2022-10-06 14:21:32.119  INFO 2826374 --- [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2022-10-06 14:21:32.421  INFO 2826374 --- [           main] u.a.e.e.a.c.b.io.FastaSequenceReader     : Sequence dictionary file not found - creating one...
+2022-10-06 14:21:55.468  INFO 2826374 --- [           main] u.a.e.e.a.c.b.io.FastaSequenceReader     : Sequence index file not found - creating one...
+2022-10-06 14:22:11.590  INFO 2826374 --- [           main] org.mongodb.driver.cluster               : Cluster created with settings {hosts=[mongos-hx-eva-pro-001.ebi.ac.uk:27017], mode=MULTIPLE, requiredClusterType=UNKNOWN, serverSelectionTimeout='30000 ms', maxWaitQueueSize=500}
+2022-10-06 14:22:11.590  INFO 2826374 --- [           main] org.mongodb.driver.cluster               : Adding discovered server mongos-hx-eva-pro-001.ebi.ac.uk:27017 to client view of cluster
+2022-10-06 14:22:11.660  INFO 2826374 --- [ebi.ac.uk:27017] org.mongodb.driver.connection            : Opened connection [connectionId{localValue:1}] to mongos-hx-eva-pro-001.ebi.ac.uk:27017
+2022-10-06 14:22:11.668  INFO 2826374 --- [ebi.ac.uk:27017] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=mongos-hx-eva-pro-001.ebi.ac.uk:27017, type=SHARD_ROUTER, state=CONNECTED, ok=true, version=ServerVersion{versionList=[4, 0, 21]}, minWireVersion=0, maxWireVersion=7, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=6546230}
+2022-10-06 14:22:11.669  INFO 2826374 --- [ebi.ac.uk:27017] org.mongodb.driver.cluster               : Discovered cluster type of SHARDED
+2022-10-06 14:22:12.035  INFO 2826374 --- [           main] org.mongodb.driver.connection            : Opened connection [connectionId{localValue:2}] to mongos-hx-eva-pro-001.ebi.ac.uk:27017
+2022-10-06 14:22:13.383  WARN 2826374 --- [           main] o.s.d.m.c.m.BasicMongoPersistentProperty : Customizing field name for id property not allowed! Custom name will not be considered!
+2022-10-06 14:22:13.533  WARN 2826374 --- [           main] o.s.d.m.c.m.BasicMongoPersistentProperty : Customizing field name for id property not allowed! Custom name will not be considered!
+2022-10-06 14:22:13.611  WARN 2826374 --- [           main] o.s.d.m.c.m.BasicMongoPersistentProperty : Customizing field name for id property not allowed! Custom name will not be considered!
+2022-10-06 14:22:14.517  WARN 2826374 --- [           main] o.s.d.m.c.m.BasicMongoPersistentProperty : Customizing field name for id property not allowed! Custom name will not be considered!
+2022-10-06 14:22:14.815  INFO 2826374 --- [           main] o.s.b.c.r.s.JobRepositoryFactoryBean     : No database type set, using meta data indicating: POSTGRES
+2022-10-06 14:22:14.836  INFO 2826374 --- [           main] o.s.b.c.l.support.SimpleJobLauncher      : No TaskExecutor has been set, defaulting to synchronous executor.
+2022-10-06 14:22:15.481  INFO 2826374 --- [           main] o.s.s.concurrent.ThreadPoolTaskExecutor  : Initializing ExecutorService 'applicationTaskExecutor'
+2022-10-06 14:22:15.570  WARN 2826374 --- [           main] aWebConfiguration$JpaWebMvcConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2022-10-06 14:22:16.129  INFO 2826374 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port(s): 8080 (http) with context path ''
+2022-10-06 14:22:16.133  INFO 2826374 --- [           main] u.a.e.eva.remapping.source.Application   : Started Application in 49.627 seconds (JVM running for 51.601)
+2022-10-06 14:22:16.582  INFO 2826374 --- [           main] ionRemappingJobLauncherCommandLineRunner : Running job 'EXPORT_SUBMITTED_VARIANTS_JOB' with parameters: {assemblyAccession=GCA_000001635.1, fasta=GCA_000001635.1_custom.fa, assemblyReportUrl=file:GCA_000001635.1_assembly_report_custom.txt, outputFolder=., projects=PRJEB48005, taxonomy=10090}
+2022-10-06 14:22:16.780  INFO 2826374 --- [           main] o.s.b.c.l.support.SimpleJobLauncher      : Job: [SimpleJob: [name=EXPORT_SUBMITTED_VARIANTS_JOB]] launched with the following parameters: [{assemblyReportUrl=file:GCA_000001635.1_assembly_report_custom.txt, projects=PRJEB48005, run.id=13, taxonomy=10090, assemblyAccession=GCA_000001635.1, outputFolder=., fasta=GCA_000001635.1_custom.fa}]
+2022-10-06 14:22:16.853  INFO 2826374 --- [           main] o.s.batch.core.job.SimpleStepHandler     : Executing step: [EXPORT_EVA_SUBMITTED_VARIANTS_STEP]
+2022-10-06 14:22:16.871  INFO 2826374 --- [           main] SubmittedVariantMongoReaderConfiguration : Injecting EvaSubmittedVariantMongoReader with parameters: uk.ac.ebi.eva.remapping.source.parameters.InputParameters@7164ca4c
+2022-10-06 14:22:16.892  INFO 2826374 --- [           main] u.a.e.e.a.c.b.i.MongoDbCursorItemReader  : Issuing MongoDB query: Query: { "seq" : "GCA_000001635.1", "study" : { "$in" : ["PRJEB48005"] }, "tax" : 10090 }, Fields: { }, Sort: { }
+2022-10-06 14:22:20.512  INFO 2826374 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : EXPORT_EVA_SUBMITTED_VARIANTS_STEP: Items read = 1000, items written = 1000
+2022-10-06 14:22:20.600  INFO 2826374 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : EXPORT_EVA_SUBMITTED_VARIANTS_STEP: Items read = 2000, items written = 2000
+2022-10-06 14:22:20.669  INFO 2826374 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : EXPORT_EVA_SUBMITTED_VARIANTS_STEP: Items read = 3000, items written = 3000
+2022-10-06 14:22:20.737  INFO 2826374 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : EXPORT_EVA_SUBMITTED_VARIANTS_STEP: Items read = 4000, items written = 4000
+2022-10-06 14:22:20.781  INFO 2826374 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : EXPORT_EVA_SUBMITTED_VARIANTS_STEP: Items read = 5000, items written = 5000
+2022-10-06 14:22:20.845  INFO 2826374 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : EXPORT_EVA_SUBMITTED_VARIANTS_STEP: Items read = 6000, items written = 6000
+2022-10-06 14:22:20.889  INFO 2826374 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : EXPORT_EVA_SUBMITTED_VARIANTS_STEP: Items read = 7000, items written = 7000
+2022-10-06 14:22:20.898  INFO 2826374 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : EXPORT_EVA_SUBMITTED_VARIANTS_STEP: Items read = 7147, items written = 7147
+2022-10-06 14:22:20.898  INFO 2826374 --- [           main] u.a.e.e.r.s.b.l.ExcludeVariantsListener  : Processors filtered out 0 variants (possible reason is that they were named variants)
+2022-10-06 14:22:20.898  WARN 2826374 --- [           main] u.a.e.e.r.s.b.l.ExcludeVariantsListener  : Processors skipped 0 variants because the start position is greater than the chromosome end
+2022-10-06 14:22:20.934  INFO 2826374 --- [           main] o.s.batch.core.job.SimpleStepHandler     : Executing step: [EXPORT_DBSNP_SUBMITTED_VARIANTS_STEP]
+2022-10-06 14:22:20.937  INFO 2826374 --- [           main] SubmittedVariantMongoReaderConfiguration : Injecting DbsnpSubmittedVariantMongoReader with parameters: uk.ac.ebi.eva.remapping.source.parameters.InputParameters@7164ca4c
+2022-10-06 14:22:20.947  INFO 2826374 --- [           main] u.a.e.e.a.c.b.i.MongoDbCursorItemReader  : Issuing MongoDB query: Query: { "seq" : "GCA_000001635.1", "study" : { "$in" : ["PRJEB48005"] }, "tax" : 10090 }, Fields: { }, Sort: { }
+2022-10-06 14:22:20.988  INFO 2826374 --- [           main] u.a.e.e.a.c.b.l.GenericProgressListener  : EXPORT_DBSNP_SUBMITTED_VARIANTS_STEP: Items read = 0, items written = 0
+2022-10-06 14:22:20.989  INFO 2826374 --- [           main] u.a.e.e.r.s.b.l.ExcludeVariantsListener  : Processors filtered out 0 variants (possible reason is that they were named variants)
+2022-10-06 14:22:20.989  WARN 2826374 --- [           main] u.a.e.e.r.s.b.l.ExcludeVariantsListener  : Processors skipped 0 variants because the start position is greater than the chromosome end
+2022-10-06 14:22:21.005  INFO 2826374 --- [           main] o.s.b.c.l.support.SimpleJobLauncher      : Job: [SimpleJob: [name=EXPORT_SUBMITTED_VARIANTS_JOB]] completed with the following parameters: [{assemblyReportUrl=file:GCA_000001635.1_assembly_report_custom.txt, projects=PRJEB48005, run.id=13, taxonomy=10090, assemblyAccession=GCA_000001635.1, outputFolder=., fasta=GCA_000001635.1_custom.fa}] and the following status: [COMPLETED]
+2022-10-06 14:22:21.011  INFO 2826374 --- [           main] o.s.s.concurrent.ThreadPoolTaskExecutor  : Shutting down ExecutorService 'applicationTaskExecutor'
+2022-10-06 14:22:21.021  INFO 2826374 --- [           main] org.mongodb.driver.connection            : Closed connection [connectionId{localValue:2}] to mongos-hx-eva-pro-001.ebi.ac.uk:27017 because the pool has been closed.
+2022-10-06 14:22:21.023  INFO 2826374 --- [           main] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2022-10-06 14:22:21.029  INFO 2826374 --- [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2022-10-06 14:22:21.051  INFO 2826374 --- [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
