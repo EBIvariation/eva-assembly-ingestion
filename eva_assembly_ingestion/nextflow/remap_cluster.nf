@@ -44,7 +44,7 @@ source_to_target = "${params.source_assembly_accession}_to_${params.target_assem
 
 // Create an channel that will either be empty if remapping will take place or contain a dummy value if not
 // This will allow to trigger the clustering even if no remapping is required
-// We're using params.genome_assembly_dir because cluster_from_mongo needs to receive a file object
+// We're using params.genome_assembly_dir because the clustering process needs to receive a file object
 empty_ch = params.remapping_required ? Channel.empty() : Channel.of(params.genome_assembly_dir)
 
 process retrieve_source_genome {
@@ -133,7 +133,6 @@ process extract_vcf_from_mongo {
     """
     java -Xmx8G -jar $params.jar.vcf_extractor \
         --spring.config.name=${params.extraction_properties} \
-        --spring.batch.job.names=EXPORT_SUBMITTED_VARIANTS_JOB \
         --parameters.fasta=${source_fasta} \
         --parameters.assemblyReportUrl=file:${source_report} \
         > ${params.source_assembly_accession}_vcf_extractor.log
@@ -208,7 +207,6 @@ process ingest_vcf_into_mongo {
 
     java -Xmx8G -jar $params.jar.vcf_ingestion \
         --spring.config.name=${params.ingestion_properties} \
-        --spring.batch.job.names=INGEST_REMAPPED_VARIANTS_FROM_VCF_JOB \
         --parameters.vcf=${remapped_vcf} \
         --parameters.assemblyReportUrl=file:${target_report} \
         --parameters.loadTo=\${loadTo} \
@@ -216,16 +214,34 @@ process ingest_vcf_into_mongo {
     """
 }
 
+process process_remapped_variants {
+    memory '8GB'
+    clusterOptions "-g /accession"
 
-/*
- * Cluster target assembly.
- */
-process cluster_from_mongo {
+    input:
+    path ingestion_log from empty_ch.mix(ingestion_log_filename.collect())
+
+    output:
+    path "${source_to_target}_process_remapped.log" into process_remapped_log_filename
+    // TODO does this one generate a rs report?
+    // path "${source_to_target}_rs_report.txt" optional true into rs_report_filename
+
+    publishDir "$params.output_dir/logs", overwrite: true, mode: "copy", pattern: "*.log*"
+
+    """
+    java -Xmx8G -jar $params.jar.clustering \
+        --spring.config.name=${params.clustering_properties} \
+        --spring.batch.job.names=PROCESS_REMAPPED_VARIANTS_WITH_RS_JOB \
+        > ${source_to_target}_process_remapped.log
+    """
+}
+
+process cluster_unclustered_variants {
     memory '8GB'
     clusterOptions "-g /accession/instance-${params.clustering_instance}"
 
     input:
-    path ingestion_log from empty_ch.mix(ingestion_log_filename.collect())
+    path process_remapped_log from process_remapped_log_filename
 
     output:
     path "${source_to_target}_clustering.log" into clustering_log_filename

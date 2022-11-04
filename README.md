@@ -12,17 +12,17 @@ Supports the following tasks:
 * `load_tracker`: Retrieves source assemblies and number of studies and loads into the tracker.
   Will not load if any jobs exist for this taxonomy / target assembly pair.
 * `remap_cluster`: Remaps all source assemblies in the tracker and clusters on the target assembly.
-  Will only start jobs not marked as `complete`, and can resume them when possible.
-* `update_dbs`: Update the necessary databases with the new assembly: supported assembly table, metadata, and contig alias.
+  Will only start or resume jobs not marked as `complete`.
+* `update_dbs`: Updates the following with the new assembly: supported assembly table, metadata, and contig alias.
   Will not do any updates if any incomplete jobs are present in the tracker.
 
 Example usage:
 ```bash
 # Run everything
-python add_target_assembly.py --taxonomy 9031 --target_assembly GCA_016699485.1
+python add_target_assembly.py --taxonomy 9031 --target_assembly GCA_016699485.1 --release_version 5
 
 # Run remapping and clustering only, resume and run on a specific instance
-python add_target_assembly.py --taxonomy 9031 --target_assembly GCA_016699485.1 --tasks remap_cluster --instance 3 --resume
+python add_target_assembly.py --taxonomy 9031 --target_assembly GCA_016699485.1 --release_version 5 --tasks remap_cluster --instance 3 --resume
 ```
 
 ### Custom assembly generation

@@ -23,13 +23,15 @@ from eva_assembly_ingestion.job import AssemblyIngestionJob
 
 def main():
     argparse = ArgumentParser(description='Add a new target assembly for a given taxonomy')
-    argparse.add_argument('--taxonomy', help='Taxonomy id to be processed')
-    argparse.add_argument('--target_assembly', help='New target assembly accession')
-    argparse.add_argument('--source_of_assembly', default='Ensembl',
+    argparse.add_argument('--taxonomy', required=True, type=int, help='Taxonomy id to be processed')
+    argparse.add_argument('--target_assembly', required=True, type=str, help='New target assembly accession')
+    argparse.add_argument('--source_of_assembly', required=False, type=str, default='Ensembl',
                           help='Source of new target assembly (default Ensembl)')
     argparse.add_argument('--tasks', required=False, type=str, nargs='+',
                           default=AssemblyIngestionJob.all_tasks, choices=AssemblyIngestionJob.all_tasks,
                           help='Task or set of tasks to perform (defaults to all)')
+    argparse.add_argument('--release_version', required=True, type=int,
+                          help='Release version this assembly will be processed for')
     argparse.add_argument('--instance', help="Accessioning instance id for clustering", required=False, default=6,
                           type=int, choices=range(1, 13))
     argparse.add_argument('--resume', help='If a process has been run already this will resume it.',
@@ -38,13 +40,18 @@ def main():
 
     load_config()
 
-    if not args.taxonomy or not args.target_assembly:
-        raise ArgumentError(None, 'Must provide both --taxonomy and --target_assembly')
+    if not args.taxonomy or not args.target_assembly or not args.release_version:
+        raise ArgumentError(None, 'Must provide --taxonomy, --target_assembly, and --release_version')
 
-    job = AssemblyIngestionJob(args.taxonomy, args.target_assembly, args.source_of_assembly)
+    job = AssemblyIngestionJob(args.taxonomy, args.target_assembly, args.release_version)
     logging_config.add_stdout_handler()
 
-    job.run_all(args.tasks)
+    job.run_all(
+        tasks=args.tasks,
+        instance=args.instance,
+        source_of_assembly=args.source_of_assembly,
+        resume=args.resume
+    )
 
 
 if __name__ == "__main__":
