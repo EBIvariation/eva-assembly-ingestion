@@ -24,7 +24,8 @@ nextflow run ${SOURCE_DIR}/eva_assembly_ingestion/nextflow/remap_cluster.nf -par
 	 --clustering_instance 1 \
 	 --output_dir ${SCRIPT_DIR}/output \
 	 --remapping_config ${SCRIPT_DIR}/test_config.yaml \
-	 --remapping_required 1
+	 --remapping_required 1 \
+	 --memory 2
 
 ls ${SCRIPT_DIR}/output/dbsnp/GCA_0000001_dbsnp_remapped.vcf \
    ${SCRIPT_DIR}/output/dbsnp/GCA_0000001_dbsnp_remapped_unmapped.vcf \

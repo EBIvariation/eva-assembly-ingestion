@@ -17,12 +17,14 @@ def helpMessage() {
             --output_dir                    path to the directory where the output file should be copied.
             --remapping_config              path to the remapping configuration file
             --remapping_required            flag that sets the remapping as required if true otherwise the remapping is skipped and only the clustering can be run
+            --memory                        memory in GB to use for memory-hungry processes (e.g. Java), default 8GB
     """
 }
 
 params.source_assembly_accession = null
 params.target_assembly_accession = null
 params.species_name = null
+params.memory = 8
 // help
 params.help = null
 
@@ -111,7 +113,7 @@ process update_target_genome {
  * Extract the submitted variants to remap from the accesioning warehouse and store them in a VCF file.
  */
 process extract_vcf_from_mongo {
-    memory '8GB'
+    memory "${params.memory}GB"
     clusterOptions "-g /accession"
 
     when:
@@ -142,7 +144,7 @@ process extract_vcf_from_mongo {
  * Variant remapping pipeline
  */
 process remap_variants {
-    memory '8GB'
+    memory "${params.memory}GB"
 
     input:
     path source_fasta from updated_source_fasta
@@ -180,7 +182,7 @@ process remap_variants {
  * Ingest the remapped submitted variants from a VCF file into the accessioning warehouse.
  */
 process ingest_vcf_into_mongo {
-    memory '8GB'
+    memory "${params.memory}GB"
     clusterOptions "-g /accession"
 
     input:
@@ -212,7 +214,7 @@ process ingest_vcf_into_mongo {
 }
 
 process process_remapped_variants {
-    memory '8GB'
+    memory "${params.memory}GB"
     clusterOptions "-g /accession"
 
     input:
@@ -234,7 +236,7 @@ process process_remapped_variants {
 }
 
 process cluster_unclustered_variants {
-    memory '8GB'
+    memory "${params.memory}GB"
     clusterOptions "-g /accession/instance-${params.clustering_instance}"
 
     input:
@@ -258,7 +260,7 @@ process cluster_unclustered_variants {
  * Run clustering QC job
  */
 process qc_clustering {
-    memory '8GB'
+    memory "${params.memory}GB"
 
     input:
     path rs_report from rs_report_filename
