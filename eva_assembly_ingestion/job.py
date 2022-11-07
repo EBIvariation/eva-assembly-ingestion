@@ -159,7 +159,7 @@ class AssemblyIngestionJob(AppLogger):
     def process_one_assembly(self, source_assembly, instance, resume):
         self.set_status_start(source_assembly)
         base_directory = cfg['remapping']['base_directory']
-        nextflow_remapping_process = os.path.join(os.path.dirname(__file__), 'nextflow', 'remap_cluster.nf')
+        nextflow_pipeline = os.path.join(os.path.dirname(__file__), 'nextflow', 'remap_cluster.nf')
         assembly_directory = os.path.join(base_directory, self.taxonomy, source_assembly)
         work_dir = os.path.join(assembly_directory, 'work')
 
@@ -179,8 +179,8 @@ class AssemblyIngestionJob(AppLogger):
 
         os.makedirs(work_dir, exist_ok=True)
         remapping_log = os.path.join(assembly_directory, 'remapping_process.log')
-        remapping_config_file = os.path.join(assembly_directory, 'remapping_process_config_file.yaml')
-        remapping_config = {
+        remap_cluster_config_file = os.path.join(assembly_directory, 'remap_cluster_config.yaml')
+        remap_cluster_config = {
             'taxonomy_id': self.taxonomy,
             'source_assembly_accession': source_assembly,
             'target_assembly_accession': self.target_assembly,
@@ -196,15 +196,15 @@ class AssemblyIngestionJob(AppLogger):
         }
 
         for part in ['executable', 'nextflow', 'jar']:
-            remapping_config[part] = cfg[part]
-        with open(remapping_config_file, 'w') as open_file:
-            yaml.safe_dump(remapping_config, open_file)
+            remap_cluster_config[part] = cfg[part]
+        with open(remap_cluster_config_file, 'w') as open_file:
+            yaml.safe_dump(remap_cluster_config, open_file)
         try:
             command = [
                 cfg['executable']['nextflow'],
                 '-log', remapping_log,
-                'run', nextflow_remapping_process,
-                '-params-file', remapping_config_file,
+                'run', nextflow_pipeline,
+                '-params-file', remap_cluster_config_file,
                 '-work-dir', work_dir
             ]
             if resume:
@@ -220,6 +220,9 @@ class AssemblyIngestionJob(AppLogger):
             os.chdir(curr_working_dir)
         self.set_status_end(source_assembly)
         self.count_variants_from_logs(assembly_directory, source_assembly)
+
+    def check_remapping_required(self, source_assembly):
+        return source_assembly != self.target_assembly
 
     def create_extraction_properties(self, output_file_path, source_assembly):
         properties = self.properties_generator.get_remapping_extraction_properties(
@@ -296,9 +299,6 @@ class AssemblyIngestionJob(AppLogger):
             )
             with get_metadata_connection_handle(cfg['maven']['environment'], cfg['maven']['settings_file']) as pg_conn:
                 execute_query(pg_conn, query)
-
-    def check_remapping_required(self, source_assembly):
-        return source_assembly != self.target_assembly
 
     def count_variants_from_logs(self, assembly_directory, source_assembly):
         vcf_extractor_log = os.path.join(assembly_directory, 'logs', source_assembly + '_vcf_extractor.log')

@@ -1,0 +1,19 @@
+
+executable:
+  genome_downloader: ../../../bin/fake_genome_downloader.py
+  custom_assembly: ../../../bin/fake_custom_assembly.py
+  nextflow: nextflow
+  bcftools: bcftools
+  samtools: samtools
+  bedtools: bedtools
+  minimap2: minimap2
+  bgzip: bgzip
+  tabix: tabix
+  python_bin: python
+
+nextflow:
+  remapping: ../../../bin/fake_remapping_pipeline.nf
+jar:
+  vcf_extractor: ../../../java/extraction.jar
+  vcf_ingestion: ../../../java/loading.jar
+  clustering: ../../../java/clustering.jar

@@ -129,3 +129,9 @@ dmypy.json
 
 # Pycharm project
 .idea/
+
+# Java / Nextflow
+*.jar
+*.class
+.nextflow*
+work/

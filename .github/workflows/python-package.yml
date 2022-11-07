@@ -28,13 +28,13 @@ jobs:
         pip install flake8 pytest
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         python setup.py install
-#        # Install Nextflow
-#        mkdir /tmp/nextflow && cd /tmp/nextflow
-#        wget -qO- get.nextflow.io | bash
-#        echo "/tmp/nextflow" >> $GITHUB_PATH
-#        cd -
-#        # Build java dependencies
-#        tests/nextflow-tests/build_tests.sh
+        # Install Nextflow
+        mkdir /tmp/nextflow && cd /tmp/nextflow
+        wget -qO- get.nextflow.io | bash
+        echo "/tmp/nextflow" >> $GITHUB_PATH
+        cd -
+        # Build java dependencies
+        tests/nextflow-tests/build_tests.sh
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
@@ -49,8 +49,8 @@ jobs:
         sed 's/DEFAULT@SECLEVEL=2/DEFAULT@SECLEVEL=1/' /usr/lib/ssl/openssl.cnf > openssl_sec1.cnf
         export OPENSSL_CONF=openssl_sec1.cnf
         PYTHONPATH=. pytest tests
-#    - name: Test nextflow workflows
-#      run: |
-#        # Run nextflow tests
-#        export NXF_DEFAULT_DSL=1
-#        tests/nextflow-tests/run_tests_validation.sh
+    - name: Test nextflow workflow
+      run: |
+        # Run nextflow tests
+        export NXF_DEFAULT_DSL=1
+        tests/nextflow-tests/run_tests.sh

@@ -86,8 +86,7 @@ process update_source_genome {
     path  "${source_report.getBaseName()}_custom.txt" into updated_source_report
 
     """
-    source $params.executable.python_activate
-    $baseDir/get_custom_assembly.py --assembly-accession ${params.source_assembly_accession} --fasta-file ${source_fasta} --report-file ${source_report}
+    ${params.executable.python_bin} ${params.executable.custom_assembly} --assembly-accession ${params.source_assembly_accession} --fasta-file ${source_fasta} --report-file ${source_report}
     """
 }
 
@@ -103,8 +102,7 @@ process update_target_genome {
     path "${target_report.getBaseName()}_custom.txt" into updated_target_report
 
     """
-    source $params.executable.python_activate
-    $baseDir/get_custom_assembly.py --assembly-accession ${params.target_assembly_accession} --fasta-file ${target_fasta} --report-file ${target_report} --no-rename
+    ${params.executable.python_bin} ${params.executable.custom_assembly} --assembly-accession ${params.target_assembly_accession} --fasta-file ${target_fasta} --report-file ${target_report} --no-rename
     """
 }
 
@@ -168,7 +166,6 @@ process remap_variants {
       do ln -s \$P bin/
     done
     PATH=`pwd`/bin:\$PATH
-    source $params.executable.python_activate
     # Nextflow needs the full path to the input parameters hence the pwd
     $params.executable.nextflow run $params.nextflow.remapping -resume \
       --oldgenome `pwd`/${source_fasta} \
@@ -223,7 +220,7 @@ process process_remapped_variants {
 
     output:
     path "${source_to_target}_process_remapped.log" into process_remapped_log_filename
-    // TODO does this one generate a rs report?
+    // TODO this also generates a rs report, for "newly remapped" rs - should we QC this separately?
     // path "${source_to_target}_rs_report.txt" optional true into rs_report_filename
 
     publishDir "$params.output_dir/logs", overwrite: true, mode: "copy", pattern: "*.log*"
