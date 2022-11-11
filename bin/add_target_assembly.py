@@ -18,7 +18,7 @@ from argparse import ArgumentParser, ArgumentError
 from ebi_eva_common_pyutils.logger import logging_config
 
 from eva_assembly_ingestion.config import load_config
-from eva_assembly_ingestion.job import AssemblyIngestionJob
+from eva_assembly_ingestion.assembly_ingestion_job import AssemblyIngestionJob
 
 
 def main():

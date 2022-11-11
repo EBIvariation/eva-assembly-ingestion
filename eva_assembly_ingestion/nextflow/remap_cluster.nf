@@ -261,6 +261,7 @@ process cluster_unclustered_variants {
  */
 process qc_clustering {
     memory "${params.memory}GB"
+    clusterOptions "-g /accession"
 
     input:
     path rs_report from rs_report_filename

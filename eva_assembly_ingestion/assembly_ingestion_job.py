@@ -18,6 +18,7 @@ import subprocess
 import yaml
 from cached_property import cached_property
 from ebi_eva_common_pyutils.command_utils import run_command_with_output
+from ebi_eva_common_pyutils.common_utils import pretty_print
 from ebi_eva_common_pyutils.config import cfg
 from ebi_eva_common_pyutils.config_utils import get_contig_alias_db_creds_for_profile
 from ebi_eva_common_pyutils.contig_alias.contig_alias import ContigAliasClient
@@ -30,17 +31,6 @@ from psycopg2.extras import execute_values
 
 from eva_assembly_ingestion.parse_counts import count_variants_extracted, count_variants_remapped, \
     count_variants_ingested
-
-
-def pretty_print(header, table):
-    cell_widths = [len(h) for h in header]
-    for row in table:
-        for i, cell in enumerate(row):
-            cell_widths[i] = max(cell_widths[i], len(str(cell)))
-    format_string = ' | '.join('{%s:>%s}' % (i, w) for i, w in enumerate(cell_widths))
-    print('| ' + format_string.format(*header) + ' |')
-    for row in table:
-        print('| ' + format_string.format(*row) + ' |')
 
 
 class AssemblyIngestionJob(AppLogger):
@@ -74,7 +64,7 @@ class AssemblyIngestionJob(AppLogger):
             'Sources', 'Taxonomy', 'Scientific Name', 'Assembly', 'Target Assembly', 'Num Studies', 'Status')
         existing_jobs = self.get_job_information_from_tracker()
         if existing_jobs:
-            self.info(f'Jobs already exist for taxonomy {self.taxonomy} and target assembly {self.target_assembly}, '
+            self.warning(f'Jobs already exist for taxonomy {self.taxonomy} and target assembly {self.target_assembly}, '
                       f'not loading anything new.')
             pretty_print(header_to_print, existing_jobs)
             return
@@ -95,7 +85,7 @@ class AssemblyIngestionJob(AppLogger):
             rows_to_print.append(('DBSNP', self.taxonomy, self.scientific_name, source_assembly, self.target_assembly,
                                   num_studies, 'Pending'))
         if len(rows) == 0:
-            self.info(f'Nothing to process for taxonomy {self.taxonomy} and target assembly {self.target_assembly}')
+            self.warning(f'Nothing to process for taxonomy {self.taxonomy} and target assembly {self.target_assembly}')
             return
         with get_metadata_connection_handle(self.maven_profile, self.private_settings_file) as pg_conn:
             with pg_conn.cursor() as cursor:
@@ -108,7 +98,7 @@ class AssemblyIngestionJob(AppLogger):
         query = (
             f"SELECT source, taxonomy, scientific_name, origin_assembly_accession, assembly_accession, "
             f"num_studies, remapping_status "
-            f"FROM eva_progress_tracker.remapping_tracker "
+            f"FROM {self.tracking_table} "
             f"WHERE release_version={self.release_version} "
             f"AND assembly_accession='{self.target_assembly}' AND taxonomy={self.taxonomy}"
         )
@@ -340,8 +330,8 @@ class AssemblyIngestionJob(AppLogger):
         """Update all relevant databases to reflect the new assembly."""
         incomplete_assemblies = self.get_incomplete_assemblies()
         if incomplete_assemblies:
-            self.info(f'Processing for the following source assemblies is not yet complete: {incomplete_assemblies}')
-            self.info('Not updating databases.')
+            self.warning(f'Processing for the following source assemblies is not yet complete: {incomplete_assemblies}')
+            self.warning('Not updating databases.')
             return
         self.add_to_supported_assemblies(source_of_assembly)
         self.add_to_metadata()
@@ -357,7 +347,7 @@ class AssemblyIngestionJob(AppLogger):
             )
             results = get_all_results_for_query(pg_conn, current_query)
             if len(results) > 0 and results[0][0] == self.target_assembly:
-                self.info(f'Current assembly for taxonomy {self.taxonomy} is already {self.target_assembly}')
+                self.warning(f'Current assembly for taxonomy {self.taxonomy} is already {self.target_assembly}')
                 return
 
             # Deprecate the last current assembly
