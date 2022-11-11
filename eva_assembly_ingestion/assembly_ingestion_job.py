@@ -65,7 +65,7 @@ class AssemblyIngestionJob(AppLogger):
         existing_jobs = self.get_job_information_from_tracker()
         if existing_jobs:
             self.warning(f'Jobs already exist for taxonomy {self.taxonomy} and target assembly {self.target_assembly}, '
-                      f'not loading anything new.')
+                         f'not loading anything new.')
             pretty_print(header_to_print, existing_jobs)
             return
 
@@ -243,10 +243,13 @@ class AssemblyIngestionJob(AppLogger):
             open_file.write(properties)
         return output_file_path
 
-    def set_status(self, source_assembly, status):
-        query = (
-            f"UPDATE {self.tracking_table} "
-            f"SET remapping_status='{status}', remapping_start = '{datetime.now().isoformat()}' "
+    def set_status(self, source_assembly, status, start_time=None, end_time=None):
+        query = f"UPDATE {self.tracking_table} SET remapping_status='{status}' "
+        if start_time:
+            query += f", remapping_start='{start_time.isoformat()}' "
+        if end_time:
+            query += f", remapping_end='{end_time.isoformat()}' "
+        query += (
             f"WHERE release_version={self.release_version} "
             f"AND origin_assembly_accession='{source_assembly}' AND taxonomy={self.taxonomy}"
         )
@@ -254,10 +257,10 @@ class AssemblyIngestionJob(AppLogger):
             execute_query(pg_conn, query)
 
     def set_status_start(self, source_assembly):
-        self.set_status(source_assembly, 'Started')
+        self.set_status(source_assembly, 'Started', start_time=datetime.now())
 
     def set_status_end(self, source_assembly):
-        self.set_status(source_assembly, 'Completed')
+        self.set_status(source_assembly, 'Completed', end_time=datetime.now())
 
     def set_status_failed(self, source_assembly):
         self.set_status(source_assembly, 'Failed')
