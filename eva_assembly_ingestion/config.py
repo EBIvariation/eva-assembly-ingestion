@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 import os
 
 from ebi_eva_common_pyutils.config import cfg
