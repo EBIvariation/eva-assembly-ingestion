@@ -19,10 +19,10 @@ Supports the following tasks:
 Example usage:
 ```bash
 # Run everything
-python add_target_assembly.py --taxonomy 9031 --target_assembly GCA_016699485.1 --release_version 5
+add_target_assembly.py --taxonomy 9031 --target_assembly GCA_016699485.1 --release_version 5
 
 # Run remapping and clustering only, resume and run on a specific instance
-python add_target_assembly.py --taxonomy 9031 --target_assembly GCA_016699485.1 --release_version 5 --tasks remap_cluster --instance 3 --resume
+add_target_assembly.py --taxonomy 9031 --target_assembly GCA_016699485.1 --release_version 5 --tasks remap_cluster --instance 3 --resume
 ```
 
 ### Custom assembly generation
@@ -30,8 +30,8 @@ Executable to generate custom assemblies and assembly reports.
 This is called in the main target assembly job and can be used for other remapping jobs as well.
 ```bash
 # Standard run
-python get_custom_assembly.py --assembly-accession GCA_016699485.1 --fasta-file /path/to/fasta --report-file /path/to/report
+get_custom_assembly.py --assembly-accession GCA_016699485.1 --fasta-file /path/to/fasta --report-file /path/to/report
 
 # Disable contig renaming
-python get_custom_assembly.py --assembly-accession GCA_016699485.1 --fasta-file /path/to/fasta --report-file /path/to/report --no-rename
+get_custom_assembly.py --assembly-accession GCA_016699485.1 --fasta-file /path/to/fasta --report-file /path/to/report --no-rename
 ```
