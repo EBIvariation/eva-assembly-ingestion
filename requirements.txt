@@ -1,4 +1,4 @@
-git+https://github.com/apriltuesday/eva-common-pyutils.git@EVA-3050
+ebi-eva-common-pyutils>=0.5
 pyyaml
 requests
 retry

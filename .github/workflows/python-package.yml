@@ -5,7 +5,7 @@ name: Python package
 
 on:
   push:
-    branches: [ master, EVA-3050 ]
+    branches: [ master ]
   pull_request:
     branches: [ master ]
 
