@@ -1,0 +1,61 @@
+# Assembly name:  Bos_taurus_UMD_3.1
+# Organism name:  Bos taurus (cattle)
+# Infraspecific name:  breed=Hereford
+# Sex:  pooled male and female
+# Taxid:          9913
+# BioSample:      SAMN02898106
+# BioProject:     PRJNA33843
+# Submitter:      Center for Bioinformatics and Computational Biology, University of Maryland
+# Date:           2009-12-1
+# Assembly type:  haploid
+# Release type:   major
+# Assembly level: Chromosome
+# Genome representation: full
+# WGS project:    DAAA02
+# Assembly method: UMD Overlapper v. 2009; additional processing
+# Genome coverage: 9x
+# Sequencing technology: Sanger
+# GenBank assembly accession: GCA_000003055.3
+# RefSeq assembly accession: GCF_000003055.3
+# RefSeq assembly and GenBank assemblies identical: yes
+#
+## Assembly-Units:
+## GenBank Unit Accession	RefSeq Unit Accession	Assembly-Unit name
+## GCA_000001245.3	GCF_000001245.3	Primary Assembly
+#
+# Ordered by chromosome/plasmid; the chromosomes/plasmids are followed by
+# unlocalized scaffolds.
+# Unplaced scaffolds are listed at the end.
+# RefSeq is equal or derived from GenBank object.
+#
+# Sequence-Name	Sequence-Role	Assigned-Molecule	Assigned-Molecule-Location/Type	GenBank-Accn	Relationship	RefSeq-Accn	Assembly-Unit	Sequence-Length	UCSC-style-name
+Chr1	assembled-molecule	1	Chromosome	GK000001.2	=	AC_000158.1	Primary Assembly	158337067	na
+Chr2	assembled-molecule	2	Chromosome	GK000002.2	=	AC_000159.1	Primary Assembly	137060424	na
+Chr3	assembled-molecule	3	Chromosome	GK000003.2	=	AC_000160.1	Primary Assembly	121430405	na
+Chr4	assembled-molecule	4	Chromosome	GK000004.2	=	AC_000161.1	Primary Assembly	120829699	na
+Chr5	assembled-molecule	5	Chromosome	GK000005.2	=	AC_000162.1	Primary Assembly	121191424	na
+Chr6	assembled-molecule	6	Chromosome	GK000006.2	=	AC_000163.1	Primary Assembly	119458736	na
+Chr7	assembled-molecule	7	Chromosome	GK000007.2	=	AC_000164.1	Primary Assembly	112638659	na
+Chr8	assembled-molecule	8	Chromosome	GK000008.2	=	AC_000165.1	Primary Assembly	113384836	na
+Chr9	assembled-molecule	9	Chromosome	GK000009.2	=	AC_000166.1	Primary Assembly	105708250	na
+Chr10	assembled-molecule	10	Chromosome	GK000010.2	=	AC_000167.1	Primary Assembly	104305016	na
+Chr11	assembled-molecule	11	Chromosome	GK000011.2	=	AC_000168.1	Primary Assembly	107310763	na
+Chr12	assembled-molecule	12	Chromosome	GK000012.2	=	AC_000169.1	Primary Assembly	91163125	na
+Chr13	assembled-molecule	13	Chromosome	GK000013.2	=	AC_000170.1	Primary Assembly	84240350	na
+Chr14	assembled-molecule	14	Chromosome	GK000014.2	=	AC_000171.1	Primary Assembly	84648390	na
+Chr15	assembled-molecule	15	Chromosome	GK000015.2	=	AC_000172.1	Primary Assembly	85296676	na
+Chr16	assembled-molecule	16	Chromosome	GK000016.2	=	AC_000173.1	Primary Assembly	81724687	na
+Chr17	assembled-molecule	17	Chromosome	GK000017.2	=	AC_000174.1	Primary Assembly	75158596	na
+Chr18	assembled-molecule	18	Chromosome	GK000018.2	=	AC_000175.1	Primary Assembly	66004023	na
+Chr19	assembled-molecule	19	Chromosome	GK000019.2	=	AC_000176.1	Primary Assembly	64057457	na
+Chr20	assembled-molecule	20	Chromosome	GK000020.2	=	AC_000177.1	Primary Assembly	72042655	na
+Chr21	assembled-molecule	21	Chromosome	GK000021.2	=	AC_000178.1	Primary Assembly	71599096	na
+Chr22	assembled-molecule	22	Chromosome	GK000022.2	=	AC_000179.1	Primary Assembly	61435874	na
+Chr23	assembled-molecule	23	Chromosome	GK000023.2	=	AC_000180.1	Primary Assembly	52530062	na
+Chr24	assembled-molecule	24	Chromosome	GK000024.2	=	AC_000181.1	Primary Assembly	62714930	na
+Chr25	assembled-molecule	25	Chromosome	GK000025.2	=	AC_000182.1	Primary Assembly	42904170	na
+Chr26	assembled-molecule	26	Chromosome	GK000026.2	=	AC_000183.1	Primary Assembly	51681464	na
+Chr27	assembled-molecule	27	Chromosome	GK000027.2	=	AC_000184.1	Primary Assembly	45407902	na
+Chr28	assembled-molecule	28	Chromosome	GK000028.2	=	AC_000185.1	Primary Assembly	46312546	na
+Chr29	assembled-molecule	29	Chromosome	GK000029.2	=	AC_000186.1	Primary Assembly	51505224	na
+ChrX	assembled-molecule	X	Chromosome	GK000030.2	=	AC_000187.1	Primary Assembly	148823899	na

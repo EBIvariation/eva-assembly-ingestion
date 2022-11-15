@@ -1,0 +1,4 @@
+ebi-eva-common-pyutils>=0.5
+pyyaml
+requests
+retry

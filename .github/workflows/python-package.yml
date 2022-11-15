@@ -1,0 +1,56 @@
+# This workflow will install Python dependencies, run tests and lint with a variety of Python versions
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+
+name: Python package
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.8, 3.9]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 pytest
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        python setup.py install
+        # Install Nextflow
+        mkdir /tmp/nextflow && cd /tmp/nextflow
+        wget -qO- get.nextflow.io | bash
+        echo "/tmp/nextflow" >> $GITHUB_PATH
+        cd -
+        # Build java dependencies
+        tests/nextflow-tests/build_tests.sh
+    - name: Lint with flake8
+      run: |
+        # stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    - name: Test with pytest
+      run: |
+        # reduce the default SSL security level to get around a misconfiguration in the Ensembl server
+        # https://github.com/Ensembl/ensembl-rest/issues/427
+        # See https://askubuntu.com/a/1233456
+        sed 's/DEFAULT@SECLEVEL=2/DEFAULT@SECLEVEL=1/' /usr/lib/ssl/openssl.cnf > openssl_sec1.cnf
+        export OPENSSL_CONF=openssl_sec1.cnf
+        PYTHONPATH=. pytest tests
+    - name: Test nextflow workflow
+      run: |
+        # Run nextflow tests
+        export NXF_DEFAULT_DSL=1
+        tests/nextflow-tests/run_tests.sh

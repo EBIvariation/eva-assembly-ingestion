@@ -1,0 +1,27 @@
+all: 7147
+filtered: 0
+Flank_50:
+  Flank unmapped: 70
+  Novel Reference Allele length change: 4
+  Reference Allele length change: 39
+  Remapped: 4866
+  Too many alignments: 2170
+  total: 7147
+Flank_2000:
+  Flank unmapped: 3
+  Novel Reference Allele length change: 46
+  Overlapping alignment: 2
+  Reference Allele length change: 41
+  Remapped: 1526
+  Soft-clipped alignments: 5
+  Too many alignments: 683
+  total: 2283
+Flank_50000:
+  Flank unmapped: 1
+  Novel Reference Allele length change: 140
+  Overlapping alignment: 21
+  Reference Allele length change: 40
+  Remapped: 610
+  Soft-clipped alignments: 37
+  Too many supplementary: 1
+  total: 780
