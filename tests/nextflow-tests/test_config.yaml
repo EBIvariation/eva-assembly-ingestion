@@ -9,7 +9,6 @@ executable:
   minimap2: minimap2
   bgzip: bgzip
   tabix: tabix
-  python_bin: python
 
 nextflow:
   remapping: ../../../bin/fake_remapping_pipeline.nf

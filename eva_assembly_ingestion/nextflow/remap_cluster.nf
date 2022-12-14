@@ -88,7 +88,7 @@ process update_source_genome {
     path  "${source_report.getBaseName()}_custom.txt" into updated_source_report
 
     """
-    ${params.executable.python_bin} ${params.executable.custom_assembly} --assembly-accession ${params.source_assembly_accession} --fasta-file ${source_fasta} --report-file ${source_report}
+    ${params.executable.custom_assembly} --assembly-accession ${params.source_assembly_accession} --fasta-file ${source_fasta} --report-file ${source_report}
     """
 }
 
@@ -104,7 +104,7 @@ process update_target_genome {
     path "${target_report.getBaseName()}_custom.txt" into updated_target_report
 
     """
-    ${params.executable.python_bin} ${params.executable.custom_assembly} --assembly-accession ${params.target_assembly_accession} --fasta-file ${target_fasta} --report-file ${target_report} --no-rename
+    ${params.executable.custom_assembly} --assembly-accession ${params.target_assembly_accession} --fasta-file ${target_fasta} --report-file ${target_report} --no-rename
     """
 }
 
