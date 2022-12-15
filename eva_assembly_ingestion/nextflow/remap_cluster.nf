@@ -132,7 +132,7 @@ process extract_vcf_from_mongo {
 
     """
     java -Xmx8G -jar $params.jar.vcf_extractor \
-        --spring.config.name=${params.extraction_properties} \
+        --spring.config.location=file:${params.extraction_properties} \
         --parameters.fasta=${source_fasta} \
         --parameters.assemblyReportUrl=file:${source_report} \
         > ${params.source_assembly_accession}_vcf_extractor.log
@@ -205,7 +205,7 @@ process ingest_vcf_into_mongo {
     fi
 
     java -Xmx8G -jar $params.jar.vcf_ingestion \
-        --spring.config.name=${params.ingestion_properties} \
+        --spring.config.location=file:${params.ingestion_properties} \
         --parameters.vcf=${remapped_vcf} \
         --parameters.assemblyReportUrl=file:${target_report} \
         --parameters.loadTo=\${loadTo} \
@@ -229,7 +229,7 @@ process process_remapped_variants {
 
     """
     java -Xmx8G -jar $params.jar.clustering \
-        --spring.config.name=${params.clustering_properties} \
+        --spring.config.location=file:${params.clustering_properties} \
         --spring.batch.job.names=PROCESS_REMAPPED_VARIANTS_WITH_RS_JOB \
         > ${source_to_target}_process_remapped.log
     """
@@ -250,7 +250,7 @@ process cluster_unclustered_variants {
 
     """
     java -Xmx8G -jar $params.jar.clustering \
-        --spring.config.name=${params.clustering_properties} \
+        --spring.config.location=file:${params.clustering_properties} \
         --spring.batch.job.names=CLUSTER_UNCLUSTERED_VARIANTS_JOB \
         > ${source_to_target}_clustering.log
     """
@@ -273,7 +273,7 @@ process qc_clustering {
 
     """
     java -Xmx8G -jar $params.jar.clustering \
-        --spring.config.name=${params.clustering_properties} \
+        --spring.config.location=file:${params.clustering_properties} \
         --spring.batch.job.names=NEW_CLUSTERED_VARIANTS_QC_JOB \
         > ${source_to_target}_clustering_qc.log
     """
