@@ -168,6 +168,7 @@ process remap_variants {
       do ln -s \$P bin/
     done
     PATH=`pwd`/bin:\$PATH
+    source $params.executable.python_activate
     # Nextflow needs the full path to the input parameters hence the pwd
     $params.executable.nextflow run $params.nextflow.remapping -resume \
       --oldgenome `pwd`/${source_fasta} \
