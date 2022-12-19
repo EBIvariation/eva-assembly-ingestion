@@ -339,6 +339,7 @@ class AssemblyIngestionJob(AppLogger):
         self.add_to_supported_assemblies(source_of_assembly)
         self.add_to_metadata()
         self.add_to_contig_alias()
+        self.info('Metadata database updates complete.')
 
     def add_to_supported_assemblies(self, source_of_assembly):
         today = datetime.date.today().strftime('%Y-%m-%d')
