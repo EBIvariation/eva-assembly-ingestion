@@ -9,7 +9,7 @@ executable:
   minimap2: minimap2
   bgzip: bgzip
   tabix: tabix
-  python_activate: "`which activate`"
+  python_activate: ../../../bin/venv_activate
 
 nextflow:
   remapping: ../../../bin/fake_remapping_pipeline.nf
