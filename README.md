@@ -35,3 +35,44 @@ get_custom_assembly.py --assembly-accession GCA_016699485.1 --fasta-file /path/t
 # Disable contig renaming
 get_custom_assembly.py --assembly-accession GCA_016699485.1 --fasta-file /path/to/fasta --report-file /path/to/report --no-rename
 ```
+
+## Configuration
+
+The scripts require a configuration YAML file proving the locations of executables and other parameters.
+The default config is `.assembly_config.yml` in the user's home, or a path can be provided via the environment variable `ASSEMBLYCONFIG`.
+
+A complete config looks like the following:
+
+```yaml
+maven:
+  environment: development
+  settings_file: /path/to/settings.xml
+
+remapping:
+  base_directory: /path/to/remapping_dir
+
+eutils_api_key: 12345
+
+genome_downloader:
+  output_directory: /path/to/genomes_dir
+
+executable:
+  python_activate: /path/to/remapping_env
+  nextflow: /path/to/nextflow
+  bcftools: /path/to/bcftools
+  samtools: /path/to/samtools
+  bedtools: /path/to/bedtools
+  minimap2: /path/to/minimap
+  bgzip: /path/to/bgzip
+  tabix: /path/to/tabix
+  genome_downloader: /path/to/genome_downloader
+  custom_assembly: /path/to/custom_assembly
+
+jar:
+  vcf_extractor: /path/to/extraction.jar
+  vcf_ingestion: /path/to/ingestion.jar
+  clustering: /path/to/clustering.jar
+
+nextflow:
+  remapping: /path/to/remapping.nf
+```
