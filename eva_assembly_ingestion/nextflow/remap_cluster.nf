@@ -88,7 +88,7 @@ process update_source_genome {
     path  "${source_report.getBaseName()}_custom.txt" into updated_source_report
 
     """
-    ${params.executable.python_bin} ${params.executable.custom_assembly} --assembly-accession ${params.source_assembly_accession} --fasta-file ${source_fasta} --report-file ${source_report}
+    ${params.executable.custom_assembly} --assembly-accession ${params.source_assembly_accession} --fasta-file ${source_fasta} --report-file ${source_report}
     """
 }
 
@@ -104,7 +104,7 @@ process update_target_genome {
     path "${target_report.getBaseName()}_custom.txt" into updated_target_report
 
     """
-    ${params.executable.python_bin} ${params.executable.custom_assembly} --assembly-accession ${params.target_assembly_accession} --fasta-file ${target_fasta} --report-file ${target_report} --no-rename
+    ${params.executable.custom_assembly} --assembly-accession ${params.target_assembly_accession} --fasta-file ${target_fasta} --report-file ${target_report} --no-rename
     """
 }
 
@@ -132,7 +132,7 @@ process extract_vcf_from_mongo {
 
     """
     java -Xmx8G -jar $params.jar.vcf_extractor \
-        --spring.config.name=${params.extraction_properties} \
+        --spring.config.location=file:${params.extraction_properties} \
         --parameters.fasta=${source_fasta} \
         --parameters.assemblyReportUrl=file:${source_report} \
         > ${params.source_assembly_accession}_vcf_extractor.log
@@ -168,6 +168,7 @@ process remap_variants {
       do ln -s \$P bin/
     done
     PATH=`pwd`/bin:\$PATH
+    source $params.executable.python_activate
     # Nextflow needs the full path to the input parameters hence the pwd
     $params.executable.nextflow run $params.nextflow.remapping -resume \
       --oldgenome `pwd`/${source_fasta} \
@@ -205,7 +206,7 @@ process ingest_vcf_into_mongo {
     fi
 
     java -Xmx8G -jar $params.jar.vcf_ingestion \
-        --spring.config.name=${params.ingestion_properties} \
+        --spring.config.location=file:${params.ingestion_properties} \
         --parameters.vcf=${remapped_vcf} \
         --parameters.assemblyReportUrl=file:${target_report} \
         --parameters.loadTo=\${loadTo} \
@@ -229,7 +230,7 @@ process process_remapped_variants {
 
     """
     java -Xmx8G -jar $params.jar.clustering \
-        --spring.config.name=${params.clustering_properties} \
+        --spring.config.location=file:${params.clustering_properties} \
         --spring.batch.job.names=PROCESS_REMAPPED_VARIANTS_WITH_RS_JOB \
         > ${source_to_target}_process_remapped.log
     """
@@ -250,7 +251,7 @@ process cluster_unclustered_variants {
 
     """
     java -Xmx8G -jar $params.jar.clustering \
-        --spring.config.name=${params.clustering_properties} \
+        --spring.config.location=file:${params.clustering_properties} \
         --spring.batch.job.names=CLUSTER_UNCLUSTERED_VARIANTS_JOB \
         > ${source_to_target}_clustering.log
     """
@@ -273,7 +274,7 @@ process qc_clustering {
 
     """
     java -Xmx8G -jar $params.jar.clustering \
-        --spring.config.name=${params.clustering_properties} \
+        --spring.config.location=file:${params.clustering_properties} \
         --spring.batch.job.names=NEW_CLUSTERED_VARIANTS_QC_JOB \
         > ${source_to_target}_clustering_qc.log
     """

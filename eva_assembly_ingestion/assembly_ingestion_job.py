@@ -150,8 +150,9 @@ class AssemblyIngestionJob(AppLogger):
         self.set_status_start(source_assembly)
         base_directory = cfg['remapping']['base_directory']
         nextflow_pipeline = os.path.join(os.path.dirname(__file__), 'nextflow', 'remap_cluster.nf')
-        assembly_directory = os.path.join(base_directory, self.taxonomy, source_assembly)
+        assembly_directory = os.path.join(base_directory, str(self.taxonomy), source_assembly)
         work_dir = os.path.join(assembly_directory, 'work')
+        os.makedirs(work_dir, exist_ok=True)
 
         extraction_properties_file = self.create_extraction_properties(
             output_file_path=os.path.join(assembly_directory, 'remapping_extraction.properties'),
@@ -167,7 +168,6 @@ class AssemblyIngestionJob(AppLogger):
             source_assembly=source_assembly
         )
 
-        os.makedirs(work_dir, exist_ok=True)
         remapping_log = os.path.join(assembly_directory, 'remapping_process.log')
         remap_cluster_config_file = os.path.join(assembly_directory, 'remap_cluster_config.yaml')
         remap_cluster_config = {
@@ -257,10 +257,10 @@ class AssemblyIngestionJob(AppLogger):
             execute_query(pg_conn, query)
 
     def set_status_start(self, source_assembly):
-        self.set_status(source_assembly, 'Started', start_time=datetime.now())
+        self.set_status(source_assembly, 'Started', start_time=datetime.datetime.now())
 
     def set_status_end(self, source_assembly):
-        self.set_status(source_assembly, 'Completed', end_time=datetime.now())
+        self.set_status(source_assembly, 'Completed', end_time=datetime.datetime.now())
 
     def set_status_failed(self, source_assembly):
         self.set_status(source_assembly, 'Failed')
@@ -339,6 +339,7 @@ class AssemblyIngestionJob(AppLogger):
         self.add_to_supported_assemblies(source_of_assembly)
         self.add_to_metadata()
         self.add_to_contig_alias()
+        self.info('Metadata database updates complete.')
 
     def add_to_supported_assemblies(self, source_of_assembly):
         today = datetime.date.today().strftime('%Y-%m-%d')
