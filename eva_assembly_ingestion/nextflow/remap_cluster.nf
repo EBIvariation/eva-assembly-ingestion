@@ -247,7 +247,7 @@ process cluster_unclustered_variants {
     path "${source_to_target}_clustering.log" into clustering_log_filename
     path "${source_to_target}_rs_report.txt" optional true into rs_report_filename
 
-    publishDir "$params.output_dir/logs", overwrite: true, mode: "copy", pattern: "*.log*"
+    publishDir "$params.output_dir/logs", overwrite: true, mode: "copy"
 
     """
     java -Xmx8G -jar $params.jar.clustering \
@@ -277,5 +277,30 @@ process qc_clustering {
         --spring.config.location=file:${params.clustering_properties} \
         --spring.batch.job.names=NEW_CLUSTERED_VARIANTS_QC_JOB \
         > ${source_to_target}_clustering_qc.log
+    """
+}
+
+
+/*
+ * Run Back propagation of new clustered RS
+ */
+process backpropagate_clusters {
+    memory "${params.memory}GB"
+    clusterOptions "-g /accession"
+
+    input:
+    path "clustering_qc.log" from clustering_qc_log_filename
+
+    output:
+    path "${params.target_assembly_accession}_backpropagate_to_${params.source_assembly_accession}.log" into backpropagate_log_filename
+
+    publishDir "$params.output_dir/logs", overwrite: true, mode: "copy", pattern: "*.log*"
+
+    """
+    java -Xmx8G -jar $params.jar.clustering \
+        --spring.config.location=file:${params.clustering_properties} \
+        --parameters.remappedFrom=${params.source_assembly_accession} \
+        --spring.batch.job.names=BACK_PROPAGATE_SPLIT_OR_MERGED_RS_JOB \
+        > ${params.target_assembly_accession}_backpropagate_to_${params.source_assembly_accession}.log
     """
 }
