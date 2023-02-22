@@ -34,8 +34,11 @@ ls ${SCRIPT_DIR}/output/dbsnp/GCA_0000001_dbsnp_remapped.vcf \
    ${SCRIPT_DIR}/output/eva/GCA_0000001_eva_remapped_unmapped.vcf \
    ${SCRIPT_DIR}/output/eva/GCA_0000001_eva_remapped_counts.yml
 
-# Test we have 5 log files in the logs directory (1 extraction, 2 ingestion, 2 clustering)
-[[ $(find ${SCRIPT_DIR}/output/logs/ -type f -name "*.log" | wc -l) -eq 5 ]]
+# Test we have 7 log files in the logs directory (1 extraction, 2 ingestion, 3 clustering, 1 backpropagate)
+[[ $(find ${SCRIPT_DIR}/output/logs/ -type f -name "*.log" | wc -l) -eq 7 ]]
+
+# Test we have 1 rs_report in the logs directory
+[[ $(find ${SCRIPT_DIR}/output/logs/ -type f -name "*.txt" | wc -l) -eq 1 ]]
 
 # clean up
 rm -rf work .nextflow* output genomes
