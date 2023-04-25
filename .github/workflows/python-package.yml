@@ -52,5 +52,5 @@ jobs:
     - name: Test nextflow workflow
       run: |
         # Run nextflow tests
-        export NXF_DEFAULT_DSL=1
+        export NXF_DEFAULT_DSL=2
         tests/nextflow-tests/run_tests.sh
