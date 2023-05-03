@@ -23,7 +23,8 @@ from ebi_eva_common_pyutils.config import cfg
 from ebi_eva_common_pyutils.config_utils import get_contig_alias_db_creds_for_profile
 from ebi_eva_common_pyutils.contig_alias.contig_alias import ContigAliasClient
 from ebi_eva_common_pyutils.logger import AppLogger
-from ebi_eva_common_pyutils.metadata_utils import get_metadata_connection_handle, insert_new_assembly_and_taxonomy
+from ebi_eva_common_pyutils.metadata_utils import get_metadata_connection_handle, insert_new_assembly_and_taxonomy, \
+    add_to_supported_assemblies
 from ebi_eva_common_pyutils.pg_utils import execute_query, get_all_results_for_query
 from ebi_eva_common_pyutils.spring_properties import SpringPropertiesGenerator
 from ebi_eva_common_pyutils.taxonomy.taxonomy import get_scientific_name_from_taxonomy
@@ -336,39 +337,12 @@ class AssemblyIngestionJob(AppLogger):
             self.warning(f'Processing for the following source assemblies is not yet complete: {incomplete_assemblies}')
             self.warning('Not updating databases.')
             return
-        self.add_to_supported_assemblies(source_of_assembly)
+        with get_metadata_connection_handle(self.maven_profile, self.private_settings_file) as pg_conn:
+            add_to_supported_assemblies(metadata_connection_handle=pg_conn, source_of_assembly=source_of_assembly,
+                                        target_assembly=self.target_assembly, taxonomy_id=self.taxonomy)
         self.add_to_metadata()
         self.add_to_contig_alias()
         self.info('Metadata database updates complete.')
-
-    def add_to_supported_assemblies(self, source_of_assembly):
-        today = datetime.date.today().strftime('%Y-%m-%d')
-        with get_metadata_connection_handle(self.maven_profile, self.private_settings_file) as pg_conn:
-            # First check if the current assembly is already target - if so don't do anything
-            current_query = (
-                f"SELECT assembly_id FROM evapro.supported_assembly_tracker "
-                f"WHERE taxonomy_id={self.taxonomy} AND current=true;"
-            )
-            results = get_all_results_for_query(pg_conn, current_query)
-            if len(results) > 0 and results[0][0] == self.target_assembly:
-                self.warning(f'Current assembly for taxonomy {self.taxonomy} is already {self.target_assembly}')
-                return
-
-            # Deprecate the last current assembly
-            update_query = (
-                f"UPDATE evapro.supported_assembly_tracker "
-                f"SET current=false, end_date='{today}' "
-                f"WHERE taxonomy_id={self.taxonomy} AND current=true;"
-            )
-            execute_query(pg_conn, update_query)
-
-            # Then insert the new assembly
-            insert_query = (
-                f"INSERT INTO evapro.supported_assembly_tracker "
-                f"(taxonomy_id, source, assembly_id, current, start_date) "
-                f"VALUES({self.taxonomy}, '{source_of_assembly}', '{self.target_assembly}', true, '{today}');"
-            )
-            execute_query(pg_conn, insert_query)
 
     def add_to_metadata(self):
         with get_metadata_connection_handle(self.maven_profile, self.private_settings_file) as pg_conn:
