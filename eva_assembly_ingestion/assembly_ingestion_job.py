@@ -338,7 +338,7 @@ class AssemblyIngestionJob(AppLogger):
             self.warning('Not updating databases.')
             return
         with get_metadata_connection_handle(self.maven_profile, self.private_settings_file) as pg_conn:
-            add_to_supported_assemblies(metadata_connection_handle=pg_conn,source_of_assembly=source_of_assembly,
+            add_to_supported_assemblies(metadata_connection_handle=pg_conn, source_of_assembly=source_of_assembly,
                                         target_assembly=self.target_assembly, taxonomy_id=self.taxonomy)
         self.add_to_metadata()
         self.add_to_contig_alias()

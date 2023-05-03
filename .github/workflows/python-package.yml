@@ -15,8 +15,16 @@ jobs:
     strategy:
       matrix:
         python-version: [3.8, 3.9]
+        nextflow-version: [21.10.5, 22.10.7]
+        java-version: [11]
 
     steps:
+    - uses: actions/checkout@v2
+    - name: Set up Java ${{ matrix.java-version }}
+      uses: actions/setup-java@v2
+      with:
+        distribution: 'temurin'
+        java-version: ${{ matrix.java-version }}
     - uses: actions/checkout@v2
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
@@ -30,7 +38,7 @@ jobs:
         python setup.py install
         # Install Nextflow
         mkdir /tmp/nextflow && cd /tmp/nextflow
-        wget -qO- get.nextflow.io | bash
+        wget -qO- https://github.com/nextflow-io/nextflow/releases/download/v${{ matrix.nextflow-version }}/nextflow-${{ matrix.nextflow-version }}-all | bash
         echo "/tmp/nextflow" >> $GITHUB_PATH
         cd -
         # Build java dependencies
@@ -52,5 +60,5 @@ jobs:
     - name: Test nextflow workflow
       run: |
         # Run nextflow tests
-        export NXF_DEFAULT_DSL=2
+        export NXF_DEFAULT_DSL=1
         tests/nextflow-tests/run_tests.sh
