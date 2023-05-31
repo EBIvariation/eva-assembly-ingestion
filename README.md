@@ -36,6 +36,13 @@ get_custom_assembly.py --assembly-accession GCA_016699485.1 --fasta-file /path/t
 get_custom_assembly.py --assembly-accession GCA_016699485.1 --fasta-file /path/to/fasta --report-file /path/to/report --no-rename
 ```
 
+### Genome target tracker
+
+For every species in EVA metadata, check which assembly is currently supported by Ensembl and report if it matches with what is supported by EVA.
+```bash
+genome_target_tracker.py --private_config_xml_file /path/to/config.xml
+```
+
 ## Configuration
 
 The scripts require a configuration YAML file proving the locations of executables and other parameters.
