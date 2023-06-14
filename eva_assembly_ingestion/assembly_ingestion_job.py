@@ -218,7 +218,8 @@ class AssemblyIngestionJob(AppLogger):
     def create_extraction_properties(self, output_file_path, source_assembly):
         properties = self.properties_generator.get_remapping_extraction_properties(
             taxonomy=self.taxonomy,
-            source_assembly=source_assembly
+            source_assembly=source_assembly,
+            output_folder='.',
         )
         with open(output_file_path, 'w') as open_file:
             open_file.write(properties)
