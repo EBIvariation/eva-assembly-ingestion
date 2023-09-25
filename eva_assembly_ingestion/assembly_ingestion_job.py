@@ -212,7 +212,7 @@ class AssemblyIngestionJob(AppLogger):
             os.chdir(curr_working_dir)
         self.set_status_end(source_assembly)
         if remapping_required:
-            self.count_variants_from_logs(assembly_directory, source_assembly, remapping_required)
+            self.count_variants_from_logs(assembly_directory, source_assembly)
         else:
             self.info(f"No remapping required. Skipping variant counts from logs")
 
