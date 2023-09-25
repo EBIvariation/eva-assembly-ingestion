@@ -171,6 +171,7 @@ class AssemblyIngestionJob(AppLogger):
 
         remapping_log = os.path.join(assembly_directory, 'remapping_process.log')
         remap_cluster_config_file = os.path.join(assembly_directory, 'remap_cluster_config.yaml')
+        remapping_required = self.check_remapping_required(source_assembly)
         remap_cluster_config = {
             'taxonomy_id': self.taxonomy,
             'source_assembly_accession': source_assembly,
@@ -183,7 +184,7 @@ class AssemblyIngestionJob(AppLogger):
             'clustering_properties': clustering_template_file,
             'clustering_instance': instance,
             'remapping_config': cfg.config_file,
-            'remapping_required': self.check_remapping_required(source_assembly)
+            'remapping_required': remapping_required
         }
 
         for part in ['executable', 'nextflow', 'jar']:
@@ -210,7 +211,7 @@ class AssemblyIngestionJob(AppLogger):
         finally:
             os.chdir(curr_working_dir)
         self.set_status_end(source_assembly)
-        self.count_variants_from_logs(assembly_directory, source_assembly)
+        self.count_variants_from_logs(assembly_directory, source_assembly, remapping_required)
 
     def check_remapping_required(self, source_assembly):
         return source_assembly != self.target_assembly
@@ -295,7 +296,7 @@ class AssemblyIngestionJob(AppLogger):
             with get_metadata_connection_handle(cfg['maven']['environment'], cfg['maven']['settings_file']) as pg_conn:
                 execute_query(pg_conn, query)
 
-    def count_variants_from_logs(self, assembly_directory, source_assembly):
+    def count_variants_from_logs(self, assembly_directory, source_assembly, remapping_required):
         vcf_extractor_log = os.path.join(assembly_directory, 'logs', source_assembly + '_vcf_extractor.log')
         eva_remapping_count = os.path.join(assembly_directory, 'eva', source_assembly + '_eva_remapped_counts.yml')
         dbsnp_remapping_count = os.path.join(assembly_directory, 'dbsnp', source_assembly + '_dbsnp_remapped_counts.yml')
@@ -303,8 +304,13 @@ class AssemblyIngestionJob(AppLogger):
         dbsnp_ingestion_log = os.path.join(assembly_directory, 'logs', source_assembly + '_dbsnp_remapped.vcf_ingestion.log')
 
         eva_total, eva_written, dbsnp_total, dbsnp_written = count_variants_extracted(vcf_extractor_log)
-        eva_candidate, eva_remapped, eva_unmapped = count_variants_remapped(eva_remapping_count)
-        dbsnp_candidate, dbsnp_remapped, dbsnp_unmapped = count_variants_remapped(dbsnp_remapping_count)
+        if remapping_required:
+            eva_candidate, eva_remapped, eva_unmapped = count_variants_remapped(eva_remapping_count)
+            dbsnp_candidate, dbsnp_remapped, dbsnp_unmapped = count_variants_remapped(dbsnp_remapping_count)
+        else:
+            self.warning(f"No Remapping Required. Setting remapping Counts to 0 for both eva and dbsnp")
+            eva_candidate = eva_remapped = eva_unmapped = None
+            dbsnp_candidate = dbsnp_remapped = dbsnp_unmapped = None
         # Use the number of variant read rather than the number of variant ingested to get the total number of variant
         # when some might have been written in previous execution.
         eva_ingestion_candidate, eva_ingested, eva_duplicates = count_variants_ingested(eva_ingestion_log)
