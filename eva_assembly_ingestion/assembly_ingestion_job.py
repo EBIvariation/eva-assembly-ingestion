@@ -171,6 +171,7 @@ class AssemblyIngestionJob(AppLogger):
 
         remapping_log = os.path.join(assembly_directory, 'remapping_process.log')
         remap_cluster_config_file = os.path.join(assembly_directory, 'remap_cluster_config.yaml')
+        remapping_required = self.check_remapping_required(source_assembly)
         remap_cluster_config = {
             'taxonomy_id': self.taxonomy,
             'source_assembly_accession': source_assembly,
@@ -183,7 +184,7 @@ class AssemblyIngestionJob(AppLogger):
             'clustering_properties': clustering_template_file,
             'clustering_instance': instance,
             'remapping_config': cfg.config_file,
-            'remapping_required': self.check_remapping_required(source_assembly)
+            'remapping_required': remapping_required
         }
 
         for part in ['executable', 'nextflow', 'jar']:
@@ -210,7 +211,10 @@ class AssemblyIngestionJob(AppLogger):
         finally:
             os.chdir(curr_working_dir)
         self.set_status_end(source_assembly)
-        self.count_variants_from_logs(assembly_directory, source_assembly)
+        if remapping_required:
+            self.count_variants_from_logs(assembly_directory, source_assembly)
+        else:
+            self.info(f"No remapping required. Skipping variant counts from logs")
 
     def check_remapping_required(self, source_assembly):
         return source_assembly != self.target_assembly
