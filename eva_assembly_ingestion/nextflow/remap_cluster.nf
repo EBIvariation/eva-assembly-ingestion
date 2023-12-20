@@ -157,9 +157,9 @@ process remap_variants {
     memory "${params.memory}GB"
 
     input:
+    each path(source_vcf)
     path source_fasta
     path target_fasta
-    path source_vcf
 
     output:
     path "${basename_source_vcf}_remapped.vcf", emit: remapped_vcfs
@@ -197,7 +197,7 @@ process ingest_vcf_into_mongo {
     clusterOptions "-g /accession"
 
     input:
-    path remapped_vcf
+    each path(remapped_vcf)
     path target_report
 
     output:
@@ -331,9 +331,9 @@ workflow {
                                  retrieve_source_genome.out.source_report, params.remapping_config)
             update_target_genome(retrieve_target_genome.out.target_fasta, retrieve_target_genome.out.target_report, params.remapping_config)
             extract_vcf_from_mongo(update_source_genome.out.updated_source_fasta, update_source_genome.out.updated_source_report)
-            remap_variants(extract_vcf_from_mongo.out.source_vcfs, update_source_genome.out.updated_source_fasta,
+            remap_variants(extract_vcf_from_mongo.out.source_vcfs.flatten(), update_source_genome.out.updated_source_fasta,
                            update_target_genome.out.updated_target_fasta)
-            ingest_vcf_into_mongo(remap_variants.out.remapped_vcfs.flatten(), update_target_genome.out.updated_target_report)
+            ingest_vcf_into_mongo(remap_variants.out.remapped_vcfs, update_target_genome.out.updated_target_report)
             process_remapped_variants(ingest_vcf_into_mongo.out.ingestion_log_filename.collect(), source_to_target)
             cluster_unclustered_variants(process_remapped_variants.out.process_remapped_log_filename, source_to_target)
             process_remapped_variants.out.rs_report_filename
