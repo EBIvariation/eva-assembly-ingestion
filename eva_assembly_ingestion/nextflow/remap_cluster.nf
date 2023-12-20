@@ -190,7 +190,7 @@ process remap_variants {
 
 
 /*
- * Ingest the remapped submitted variants from a VCF file, emit: the accessioning warehouse.
+ * Ingest the remapped submitted variants from a VCF file into the accessioning warehouse.
  */
 process ingest_vcf_into_mongo {
     memory "${params.memory}GB"
@@ -207,7 +207,7 @@ process ingest_vcf_into_mongo {
 
     script:
     """
-    # Check the file name to know which database to load the variants, emit:
+    # Check the file name to know which database to load the variants into
     if [[ $remapped_vcf == *_eva_remapped.vcf ]]
     then
         loadTo=EVA
