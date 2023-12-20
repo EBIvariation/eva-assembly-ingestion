@@ -56,7 +56,7 @@ process retrieve_source_genome {
     source_assembly_accession != params.target_assembly_accession
 
     input:
-    each source_assembly_accession
+    val source_assembly_accession
     val species_name
 
     output:
@@ -74,7 +74,7 @@ process retrieve_source_genome {
 process retrieve_target_genome {
 
     input:
-    each target_assembly_accession
+    val target_assembly_accession
     val species_name
 
     output:
