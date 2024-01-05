@@ -382,28 +382,3 @@ class AssemblyIngestionJob(AppLogger):
             self.maven_profile, self.private_settings_file)
         client = ContigAliasClient(contig_alias_url, contig_alias_user, contig_alias_pass)
         client.insert_assembly(self.target_assembly)
-
-
-
-def get_taxonomy_involved(taxonomy_id: int):
-    # First check if the current assembly is already target - if so don't do anything
-
-    if len(results) > 0 and results[0][0] == target_assembly:
-        logger.warning(f'Current assembly for taxonomy {taxonomy_id} is already {target_assembly}!')
-        return
-
-    # Deprecate the last current assembly
-    update_query = (
-        f"UPDATE {SUPPORTED_ASSEMBLY_TRACKER_TABLE} "
-        f"SET current=false, end_date='{today}' "
-        f"WHERE taxonomy_id={taxonomy_id} AND current=true;"
-    )
-    execute_query(metadata_connection_handle, update_query)
-
-    # Then insert the new assembly
-    insert_query = (
-        f"INSERT INTO {SUPPORTED_ASSEMBLY_TRACKER_TABLE} "
-        f"(taxonomy_id, source, assembly_id, current, start_date) "
-        f"VALUES({taxonomy_id}, '{source_of_assembly}', '{target_assembly}', true, '{today}');"
-    )
-    execute_query(metadata_connection_handle, insert_query)
