@@ -26,15 +26,21 @@ nextflow run ${SOURCE_DIR}/eva_assembly_ingestion/nextflow/remap_cluster.nf -par
 	 --remapping_required 1 \
 	 --memory 2
 
-ls ${SCRIPT_DIR}/output/dbsnp/GCA_0000001_dbsnp_remapped.vcf \
-   ${SCRIPT_DIR}/output/dbsnp/GCA_0000001_dbsnp_remapped_unmapped.vcf \
-   ${SCRIPT_DIR}/output/dbsnp/GCA_0000001_dbsnp_remapped_counts.yml \
-   ${SCRIPT_DIR}/output/eva/GCA_0000001_eva_remapped.vcf \
-   ${SCRIPT_DIR}/output/eva/GCA_0000001_eva_remapped_unmapped.vcf \
-   ${SCRIPT_DIR}/output/eva/GCA_0000001_eva_remapped_counts.yml
+ls ${SCRIPT_DIR}/output/dbsnp/GCA_0000001_1233_dbsnp_remapped.vcf \
+   ${SCRIPT_DIR}/output/dbsnp/GCA_0000001_1233_dbsnp_remapped_unmapped.vcf \
+   ${SCRIPT_DIR}/output/dbsnp/GCA_0000001_1233_dbsnp_remapped_counts.yml \
+   ${SCRIPT_DIR}/output/eva/GCA_0000001_1233_eva_remapped.vcf \
+   ${SCRIPT_DIR}/output/eva/GCA_0000001_1233_eva_remapped_unmapped.vcf \
+   ${SCRIPT_DIR}/output/eva/GCA_0000001_1233_eva_remapped_counts.yml \
+   ${SCRIPT_DIR}/output/dbsnp/GCA_0000001_1234_dbsnp_remapped.vcf \
+   ${SCRIPT_DIR}/output/dbsnp/GCA_0000001_1234_dbsnp_remapped_unmapped.vcf \
+   ${SCRIPT_DIR}/output/dbsnp/GCA_0000001_1234_dbsnp_remapped_counts.yml \
+   ${SCRIPT_DIR}/output/eva/GCA_0000001_1234_eva_remapped.vcf \
+   ${SCRIPT_DIR}/output/eva/GCA_0000001_1234_eva_remapped_unmapped.vcf \
+   ${SCRIPT_DIR}/output/eva/GCA_0000001_1234_eva_remapped_counts.yml
 
-# Test we have 7 log files in the logs directory (1 extraction, 2 ingestion, 3 clustering, 1 backpropagate)
-[[ $(find ${SCRIPT_DIR}/output/logs/ -type f -name "*.log" | wc -l) -eq 7 ]]
+# Test we have 10 log files in the logs directory (2 extraction, 4 ingestion, 3 clustering, 1 backpropagate)
+[[ $(find ${SCRIPT_DIR}/output/logs/ -type f -name "*.log" | wc -l) -eq 10 ]]
 
 # Test we have 1 rs_report in the logs directory
 [[ $(find ${SCRIPT_DIR}/output/logs/ -type f -name "*.txt" | wc -l) -eq 1 ]]

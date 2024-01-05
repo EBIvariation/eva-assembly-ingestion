@@ -137,7 +137,7 @@ process extract_vcf_from_mongo {
     output:
     // Store both vcfs (eva and dbsnp), emit: one channel
     path '*.vcf', emit: source_vcfs
-    path "${params.source_assembly_accession}_vcf_extractor.log", emit: log_filename
+    path "${params.source_assembly_accession}_${taxonomy}_vcf_extractor.log", emit: log_filename
 
     publishDir "$params.output_dir/logs", overwrite: true, mode: "copy", pattern: "*.log*"
 
@@ -147,7 +147,7 @@ process extract_vcf_from_mongo {
         --parameters.fasta=${source_fasta} \
         --parameters.assemblyReportUrl=file:${source_report} \
         --parameters.taxonomy=${taxonomy}
-        > ${params.source_assembly_accession}_vcf_extractor.log
+        > ${params.source_assembly_accession}_${taxonomy}_vcf_extractor.log
     """
 }
 
