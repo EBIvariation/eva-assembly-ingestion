@@ -6,14 +6,21 @@ public class FakeExtractionPipeline {
     
     public static void main(String[] args) {
         String outString = "java -jar extraction.jar";
-        String inFile = null;
+        String accession = null;
+        String taxonomy = null;
         for (String arg: args) {
             outString += " " + arg;
-            if (arg.startsWith("--parameters.fasta="))
-            inFile = arg.substring("--parameters.fasta=".length(), arg.length()-"_custom.fa".length());
+            if (arg.startsWith("--parameters.fasta=")){
+                accession = arg.substring("--parameters.fasta=".length(), arg.length()-"_custom.fa".length());
+            }
+            if (arg.startsWith("--parameters.taxonomy=")){
+                taxonomy = arg.substring("--parameters.taxonomy=".length(), arg.length());
+            }
         }
         System.out.println(outString);
-        System.out.println(inFile);
+        System.out.println(accession);
+        System.out.println(taxonomy);
+        String inFile = accession + "_" + taxonomy;
 
         // real pipeline gets this from properties
         String outFile1 = inFile + "_dbsnp.vcf";

@@ -13,7 +13,6 @@ PATH=${SCRIPT_DIR}/bin:$PATH
 
 printf "\e[32m===== REMAPPING AND CLUSTERING PIPELINE =====\e[0m\n"
 nextflow run ${SOURCE_DIR}/eva_assembly_ingestion/nextflow/remap_cluster.nf -params-file test_config.yaml \
-   --taxonomy_id 1234 \
    --source_assembly_accession GCA_0000001 \
 	 --target_assembly_accession GCA_0000002 \
 	 --species_name "Thingy thungus" \

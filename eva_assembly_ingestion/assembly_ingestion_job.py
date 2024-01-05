@@ -155,25 +155,26 @@ class AssemblyIngestionJob(AppLogger):
         """Run remapping and clustering for all source assemblies in the tracker marked as not Complete, resuming
         the nextflow process if specified. (Note that this will also resume or rerun anything marked as Failed.)"""
         source_assemblies_and_taxonomies = self.get_incomplete_assemblies_and_taxonomies()
-        self.info(f'Running remapping and clustering for the following assemblies: {source_assemblies}')
-        for source_assembly, taxonomies in source_assemblies_and_taxonomies:
-            self.process_one_assembly(source_assembly, taxonomies, instance, resume)
+        for source_assembly, taxonomy_list in source_assemblies_and_taxonomies:
+            self.info(f'Running remapping and clustering for the following assemblies: {source_assembly} '
+                      f'for taxonomy {", ".join([str(t) for t in taxonomy_list])}')
+            self.process_one_assembly(source_assembly, taxonomy_list, instance, resume)
 
     def get_incomplete_assemblies_and_taxonomies(self):
         incomplete_assemblies = []
         for row in self.get_job_information_from_tracker():
-            taxonomies = row[1]
+            taxonomies = row[1].split(',')  # Comma separated list of taxonomies
             source_assembly = row[3]
             status = row[6]
             if status != 'Completed':
                 incomplete_assemblies.append(source_assembly, taxonomies)
         return incomplete_assemblies
 
-    def process_one_assembly(self, source_assembly, taxonomies,  instance, resume):
+    def process_one_assembly(self, source_assembly, taxonomy_list,  instance, resume):
         self.set_status_start(source_assembly)
         base_directory = cfg['remapping']['base_directory']
         nextflow_pipeline = os.path.join(os.path.dirname(__file__), 'nextflow', 'remap_cluster.nf')
-        assembly_directory = os.path.join(base_directory, str(taxonomies), source_assembly)
+        assembly_directory = os.path.join(base_directory, ",".join([str(t) for t in taxonomy_list]), source_assembly)
         work_dir = os.path.join(assembly_directory, 'work')
         os.makedirs(work_dir, exist_ok=True)
 
@@ -195,7 +196,7 @@ class AssemblyIngestionJob(AppLogger):
         remap_cluster_config_file = os.path.join(assembly_directory, 'remap_cluster_config.yaml')
         remapping_required = self.check_remapping_required(source_assembly)
         remap_cluster_config = {
-            'taxonomies': taxonomies,
+            'taxonomy_list': taxonomy_list,
             'source_assembly_accession': source_assembly,
             'target_assembly_accession': self.target_assembly,
             'species_name': self.scientific_name,
@@ -364,15 +365,17 @@ class AssemblyIngestionJob(AppLogger):
             self.warning('Not updating databases.')
             return
         with get_metadata_connection_handle(self.maven_profile, self.private_settings_file) as pg_conn:
-            add_to_supported_assemblies(metadata_connection_handle=pg_conn, source_of_assembly=source_of_assembly,
-                                        target_assembly=self.target_assembly, taxonomy_id=self.taxonomy)
+            for taxonomy in self.taxonomies:
+                add_to_supported_assemblies(metadata_connection_handle=pg_conn, source_of_assembly=source_of_assembly,
+                                            target_assembly=self.target_assembly, taxonomy_id=taxonomy)
         self.add_to_metadata()
         self.add_to_contig_alias()
         self.info('Metadata database updates complete.')
 
     def add_to_metadata(self):
         with get_metadata_connection_handle(self.maven_profile, self.private_settings_file) as pg_conn:
-            insert_new_assembly_and_taxonomy(pg_conn, self.target_assembly, self.taxonomy)
+            for taxonomy in self.taxonomies:
+                insert_new_assembly_and_taxonomy(pg_conn, self.target_assembly, taxonomy)
 
     def add_to_contig_alias(self):
         contig_alias_url, contig_alias_user, contig_alias_pass = get_contig_alias_db_creds_for_profile(
