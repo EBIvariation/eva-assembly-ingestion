@@ -318,7 +318,7 @@ class AssemblyIngestionJob(AppLogger):
             query = (
                 f"UPDATE {self.tracking_table} SET {', '.join(set_statements)} "
                 f"WHERE release_version={self.release_version} AND origin_assembly_accession='{source_assembly}' "
-                f"AND taxonomy='{self.taxonomy}' AND source='{source}'"
+                f"AND taxonomy='{taxonomy}' AND source='{source}'"
             )
             with get_metadata_connection_handle(cfg['maven']['environment'], cfg['maven']['settings_file']) as pg_conn:
                 execute_query(pg_conn, query)
