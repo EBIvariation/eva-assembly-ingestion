@@ -230,13 +230,13 @@ class AssemblyIngestionJob(AppLogger):
             run_command_with_output('Nextflow remapping process', ' '.join(command))
         except subprocess.CalledProcessError as e:
             self.error('Nextflow remapping pipeline failed')
-            self.set_status_failed(source_assembly)
+            self.set_status_failed(source_assembly, taxonomy_list)
             raise e
         finally:
             os.chdir(curr_working_dir)
-        self.set_status_end(source_assembly)
+        self.set_status_end(source_assembly, taxonomy_list)
         if remapping_required:
-            self.count_variants_from_logs(assembly_directory, source_assembly)
+            self.count_variants_from_logs(assembly_directory, source_assembly, taxonomy_list)
         else:
             self.info(f"No remapping required. Skipping variant counts from logs")
 
@@ -295,13 +295,13 @@ class AssemblyIngestionJob(AppLogger):
     def set_status_failed(self, source_assembly, taxonomy_list):
         self.set_status(source_assembly, taxonomy_list,  'Failed')
 
-    def set_counts(self, source_assembly, source, nb_variant_extracted=None, nb_variant_remapped=None,
+    def set_counts(self, source_assembly, taxonomy, source, nb_variant_extracted=None, nb_variant_remapped=None,
                    nb_variant_ingested=None):
         set_statements = []
         query = (
             f"SELECT * FROM {self.tracking_table} "
             f"WHERE release_version={self.release_version} AND origin_assembly_accession='{source_assembly}' "
-            f"AND taxonomy='{self.taxonomy}' AND source='{source}'"
+            f"AND taxonomy='{taxonomy}' AND source='{source}'"
         )
         with get_metadata_connection_handle(self.maven_profile, self.private_settings_file) as pg_conn:
             # Check that this row exists
@@ -323,38 +323,44 @@ class AssemblyIngestionJob(AppLogger):
             with get_metadata_connection_handle(cfg['maven']['environment'], cfg['maven']['settings_file']) as pg_conn:
                 execute_query(pg_conn, query)
 
-    def count_variants_from_logs(self, assembly_directory, source_assembly):
-        vcf_extractor_log = os.path.join(assembly_directory, 'logs', source_assembly + '_vcf_extractor.log')
-        eva_remapping_count = os.path.join(assembly_directory, 'eva', source_assembly + '_eva_remapped_counts.yml')
-        dbsnp_remapping_count = os.path.join(assembly_directory, 'dbsnp', source_assembly + '_dbsnp_remapped_counts.yml')
-        eva_ingestion_log = os.path.join(assembly_directory, 'logs', source_assembly + '_eva_remapped.vcf_ingestion.log')
-        dbsnp_ingestion_log = os.path.join(assembly_directory, 'logs', source_assembly + '_dbsnp_remapped.vcf_ingestion.log')
+    def count_variants_from_logs(self, assembly_directory, source_assembly, taxonomy_list):
+        for taxonomy in taxonomy_list:
+            vcf_extractor_log = os.path.join(assembly_directory, 'logs',
+                                             f'{source_assembly}_{taxonomy}_vcf_extractor.log')
+            eva_remapping_count = os.path.join(assembly_directory, 'eva',
+                                               f'{source_assembly}_{taxonomy}_eva_remapped_counts.yml')
+            dbsnp_remapping_count = os.path.join(assembly_directory, 'dbsnp',
+                                                 f'{source_assembly}_{taxonomy}_dbsnp_remapped_counts.yml')
+            eva_ingestion_log = os.path.join(assembly_directory, 'logs',
+                                             f'{source_assembly}_{taxonomy}_eva_remapped.vcf_ingestion.log')
+            dbsnp_ingestion_log = os.path.join(assembly_directory, 'logs',
+                                               f'{source_assembly}_{taxonomy}_dbsnp_remapped.vcf_ingestion.log')
 
-        eva_total, eva_written, dbsnp_total, dbsnp_written = count_variants_extracted(vcf_extractor_log)
-        eva_candidate, eva_remapped, eva_unmapped = count_variants_remapped(eva_remapping_count)
-        dbsnp_candidate, dbsnp_remapped, dbsnp_unmapped = count_variants_remapped(dbsnp_remapping_count)
-        # Use the number of variant read rather than the number of variant ingested to get the total number of variant
-        # when some might have been written in previous execution.
-        eva_ingestion_candidate, eva_ingested, eva_duplicates = count_variants_ingested(eva_ingestion_log)
-        dbsnp_ingestion_candidate, dbsnp_ingested, dbsnp_duplicates = count_variants_ingested(dbsnp_ingestion_log)
+            eva_total, eva_written, dbsnp_total, dbsnp_written = count_variants_extracted(vcf_extractor_log)
+            eva_candidate, eva_remapped, eva_unmapped = count_variants_remapped(eva_remapping_count)
+            dbsnp_candidate, dbsnp_remapped, dbsnp_unmapped = count_variants_remapped(dbsnp_remapping_count)
+            # Use the number of variant read rather than the number of variant ingested to get the total number of variant
+            # when some might have been written in previous execution.
+            eva_ingestion_candidate, eva_ingested, eva_duplicates = count_variants_ingested(eva_ingestion_log)
+            dbsnp_ingestion_candidate, dbsnp_ingested, dbsnp_duplicates = count_variants_ingested(dbsnp_ingestion_log)
 
         self.set_counts(
-            source_assembly, 'EVA',
+            source_assembly, taxonomy, 'EVA',
             nb_variant_extracted=eva_written,
             nb_variant_remapped=eva_remapped,
             nb_variant_ingested=eva_ingestion_candidate
         )
         self.set_counts(
-            source_assembly, 'DBSNP',
+            source_assembly, taxonomy, 'DBSNP',
             nb_variant_extracted=dbsnp_written,
             nb_variant_remapped=dbsnp_remapped,
             nb_variant_ingested=dbsnp_ingestion_candidate
         )
 
-        self.info(f'For Taxonomy: {self.taxonomy} and Assembly: {source_assembly} Source: EVA ')
+        self.info(f'For Taxonomy: {taxonomy} and Assembly: {source_assembly} Source: EVA ')
         self.info(f'Number of variant read:{eva_total}, written:{eva_written}, attempt remapping: {eva_candidate}, '
                   f'remapped: {eva_remapped}, failed remapped {eva_unmapped}')
-        self.info(f'For Taxonomy: {self.taxonomy} and Assembly: {source_assembly} Source: DBSNP ')
+        self.info(f'For Taxonomy: {taxonomy} and Assembly: {source_assembly} Source: DBSNP ')
         self.info(
             f'Number of variant read:{dbsnp_total}, written:{dbsnp_written}, attempt remapping: {dbsnp_candidate}, '
             f'remapped: {dbsnp_remapped}, failed remapped {dbsnp_unmapped}')
