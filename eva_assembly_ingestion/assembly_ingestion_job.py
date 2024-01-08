@@ -56,16 +56,16 @@ class AssemblyIngestionJob(AppLogger):
     def taxonomies(self):
         # The taxonomy involved are all the taxonomies that have the same current target assembly
         taxonomy_query = (
-            f"select taxonomy from SUPPORTED_ASSEMBLY_TRACKER_TABLE where current=true AND assembly_id in ("
+            f"select taxonomy_id from {SUPPORTED_ASSEMBLY_TRACKER_TABLE} where current=true AND assembly_id in ("
             f"    SELECT assembly_id FROM {SUPPORTED_ASSEMBLY_TRACKER_TABLE} "
             f"    WHERE taxonomy_id={self.source_taxonomy} AND current=true"
             f");"
         )
         with get_metadata_connection_handle(self.maven_profile, self.private_settings_file) as pg_conn:
-            taxonomies = (t for t, in get_all_results_for_query(pg_conn, taxonomy_query))
-        if not taxonomies:
-            taxonomies = (self.source_taxonomy,)
-        return taxonomies
+            taxonomy_list = list(set([t for t, in get_all_results_for_query(pg_conn, taxonomy_query)]))
+        if not taxonomy_list:
+            taxonomy_list = [self.source_taxonomy]
+        return taxonomy_list
 
     def run_all(self, tasks, instance, source_of_assembly, resume):
         if 'load_tracker' in tasks:
@@ -93,15 +93,15 @@ class AssemblyIngestionJob(AppLogger):
         rows = []
         rows_to_print = []
         for source_assembly, taxonomy, projects in self.get_source_assemblies_and_projects():
-            rows.append(('EVA', taxonomy, self.scientific_name, source_assembly, self.target_assembly,
+            rows.append(('EVA', taxonomy, self.scientific_name(taxonomy), source_assembly, self.target_assembly,
                          1, self.release_version, len(projects), 1, None, 'Pending'))
-            rows_to_print.append(('EVA', taxonomy, self.scientific_name, source_assembly, self.target_assembly,
-                                  len(projects), 'Pending'))
+            rows_to_print.append(('EVA', taxonomy, self.scientific_name(taxonomy), source_assembly,
+                                  self.target_assembly, len(projects), 'Pending'))
         for source_assembly, taxonomy, num_studies in self.get_source_assemblies_and_num_studies_dbsnp():
-            rows.append(('DBSNP', taxonomy, self.scientific_name, source_assembly, self.target_assembly,
+            rows.append(('DBSNP', taxonomy, self.scientific_name(taxonomy), source_assembly, self.target_assembly,
                          1, self.release_version, num_studies, 1, None, 'Pending'))
-            rows_to_print.append(('DBSNP', taxonomy, self.scientific_name, source_assembly, self.target_assembly,
-                                  num_studies, 'Pending'))
+            rows_to_print.append(('DBSNP', taxonomy, self.scientific_name(taxonomy), source_assembly,
+                                  self.target_assembly, num_studies, 'Pending'))
         if len(rows) == 0:
             self.warning(f'Nothing to process for taxonomy {self.taxonomies} and target assembly {self.target_assembly}')
             return
@@ -120,7 +120,7 @@ class AssemblyIngestionJob(AppLogger):
             f"WHERE release_version={self.release_version} "
             f"AND assembly_accession='{self.target_assembly}' "
             f"AND taxonomy in ({', '.join([str(t) for t in self.taxonomies])})"
-            f"GROUP BY taxonomy"
+            f"GROUP BY source, scientific_name, origin_assembly_accession, assembly_accession, num_studies, remapping_status"
         )
         with get_metadata_connection_handle(self.maven_profile, self.private_settings_file) as pg_conn:
             return get_all_results_for_query(pg_conn, query)
@@ -167,11 +167,11 @@ class AssemblyIngestionJob(AppLogger):
             source_assembly = row[3]
             status = row[6]
             if status != 'Completed':
-                incomplete_assemblies.append(source_assembly, taxonomies)
+                incomplete_assemblies.append((source_assembly, taxonomies))
         return incomplete_assemblies
 
     def process_one_assembly(self, source_assembly, taxonomy_list,  instance, resume):
-        self.set_status_start(source_assembly)
+        self.set_status_start(source_assembly, taxonomy_list)
         base_directory = cfg['remapping']['base_directory']
         nextflow_pipeline = os.path.join(os.path.dirname(__file__), 'nextflow', 'remap_cluster.nf')
         assembly_directory = os.path.join(base_directory, ",".join([str(t) for t in taxonomy_list]), source_assembly)
@@ -199,7 +199,9 @@ class AssemblyIngestionJob(AppLogger):
             'taxonomy_list': taxonomy_list,
             'source_assembly_accession': source_assembly,
             'target_assembly_accession': self.target_assembly,
-            'species_name': self.scientific_name,
+            # the actual species name does not need to match the taxonomy
+            # since it is only here to locate the fasta/report files
+            'species_name': self.scientific_name(taxonomy_list[0]),
             'output_dir': assembly_directory,
             'genome_assembly_dir': cfg['genome_downloader']['output_directory'],
             'extraction_properties': extraction_properties_file,
@@ -209,7 +211,6 @@ class AssemblyIngestionJob(AppLogger):
             'remapping_config': cfg.config_file,
             'remapping_required': remapping_required
         }
-
         for part in ['executable', 'nextflow', 'jar']:
             remap_cluster_config[part] = cfg[part]
         with open(remap_cluster_config_file, 'w') as open_file:
@@ -271,27 +272,28 @@ class AssemblyIngestionJob(AppLogger):
             open_file.write(properties)
         return output_file_path
 
-    def set_status(self, source_assembly, status, start_time=None, end_time=None):
-        query = f"UPDATE {self.tracking_table} SET remapping_status='{status}' "
-        if start_time:
-            query += f", remapping_start='{start_time.isoformat()}' "
-        if end_time:
-            query += f", remapping_end='{end_time.isoformat()}' "
-        query += (
-            f"WHERE release_version={self.release_version} "
-            f"AND origin_assembly_accession='{source_assembly}' AND taxonomy={self.taxonomy}"
-        )
-        with get_metadata_connection_handle(self.maven_profile, self.private_settings_file) as pg_conn:
-            execute_query(pg_conn, query)
+    def set_status(self, source_assembly, taxonomy_list, status, start_time=None, end_time=None):
+        for taxonomy in taxonomy_list:
+            query = f"UPDATE {self.tracking_table} SET remapping_status='{status}' "
+            if start_time:
+                query += f", remapping_start='{start_time.isoformat()}' "
+            if end_time:
+                query += f", remapping_end='{end_time.isoformat()}' "
+            query += (
+                f"WHERE release_version={self.release_version} "
+                f"AND origin_assembly_accession='{source_assembly}' AND taxonomy={taxonomy}"
+            )
+            with get_metadata_connection_handle(self.maven_profile, self.private_settings_file) as pg_conn:
+                execute_query(pg_conn, query)
 
-    def set_status_start(self, source_assembly):
-        self.set_status(source_assembly, 'Started', start_time=datetime.datetime.now())
+    def set_status_start(self, source_assembly, taxonomy_list):
+        self.set_status(source_assembly, taxonomy_list, 'Started', start_time=datetime.datetime.now())
 
-    def set_status_end(self, source_assembly):
-        self.set_status(source_assembly, 'Completed', end_time=datetime.datetime.now())
+    def set_status_end(self, source_assembly, taxonomy_list):
+        self.set_status(source_assembly, taxonomy_list, 'Completed', end_time=datetime.datetime.now())
 
-    def set_status_failed(self, source_assembly):
-        self.set_status(source_assembly, 'Failed')
+    def set_status_failed(self, source_assembly, taxonomy_list):
+        self.set_status(source_assembly, taxonomy_list,  'Failed')
 
     def set_counts(self, source_assembly, source, nb_variant_extracted=None, nb_variant_remapped=None,
                    nb_variant_ingested=None):

@@ -123,7 +123,7 @@ process update_target_genome {
 
 
 /*
- * Extract the submitted variants to remap from the accesioning warehouse and store them in a VCF file.
+ * Extract the submitted variants to remap from the accessioning warehouse and store them in a VCF file.
  */
 process extract_vcf_from_mongo {
     memory "${params.memory}GB"
