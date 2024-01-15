@@ -40,9 +40,6 @@ def main():
 
     load_config()
 
-    if not args.taxonomy or not args.target_assembly or not args.release_version:
-        raise ArgumentError(None, 'Must provide --taxonomy, --target_assembly, and --release_version')
-
     job = AssemblyIngestionJob(args.taxonomy, args.target_assembly, args.release_version)
     logging_config.add_stdout_handler()
 

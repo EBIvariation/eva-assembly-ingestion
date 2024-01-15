@@ -8,7 +8,7 @@ def helpMessage() {
     Remap one assembly version to another, cluster, and QC.
 
     Inputs:
-            --taxonomy_id                   taxonomy id of submitted variants that needs to be remapped.
+            --taxonomy_list                 list of taxonomy id of submitted variants that needs to be remapped.
             --source_assembly_accession     assembly accession of the submitted variants are currently mapped to.
             --target_assembly_accession     assembly accession the submitted variants will be remapped to.
             --species_name                  scientific name to be used for the species.
@@ -35,8 +35,8 @@ params.help = null
 if (params.help) exit 0, helpMessage()
 
 // Test input files
-if (!params.taxonomy_id || !params.source_assembly_accession || !params.target_assembly_accession || !params.species_name || !params.genome_assembly_dir ) {
-    if (!params.taxonomy_id) log.warn('Provide the taxonomy id of the source submitted variants using --taxonomy_id')
+if (!params.taxonomy_list || !params.source_assembly_accession || !params.target_assembly_accession || !params.species_name || !params.genome_assembly_dir ) {
+    if (!params.taxonomy_list) log.warn('Provide the taxonomy id of the source submitted variants using --taxonomy_list')
     if (!params.source_assembly_accession) log.warn('Provide the source assembly using --source_assembly_accession')
     if (!params.target_assembly_accession) log.warn('Provide the target assembly using --target_assembly_accession')
     if (!params.species_name) log.warn('Provide a species name using --species_name')
@@ -123,7 +123,7 @@ process update_target_genome {
 
 
 /*
- * Extract the submitted variants to remap from the accesioning warehouse and store them in a VCF file.
+ * Extract the submitted variants to remap from the accessioning warehouse and store them in a VCF file.
  */
 process extract_vcf_from_mongo {
     memory "${params.memory}GB"
@@ -132,11 +132,12 @@ process extract_vcf_from_mongo {
     input:
     path source_fasta
     path source_report
+    each taxonomy
 
     output:
     // Store both vcfs (eva and dbsnp), emit: one channel
     path '*.vcf', emit: source_vcfs
-    path "${params.source_assembly_accession}_vcf_extractor.log", emit: log_filename
+    path "${params.source_assembly_accession}_${taxonomy}_vcf_extractor.log", emit: log_filename
 
     publishDir "$params.output_dir/logs", overwrite: true, mode: "copy", pattern: "*.log*"
 
@@ -145,7 +146,8 @@ process extract_vcf_from_mongo {
         --spring.config.location=file:${params.extraction_properties} \
         --parameters.fasta=${source_fasta} \
         --parameters.assemblyReportUrl=file:${source_report} \
-        > ${params.source_assembly_accession}_vcf_extractor.log
+        --parameters.taxonomy=${taxonomy}
+        > ${params.source_assembly_accession}_${taxonomy}_vcf_extractor.log
     """
 }
 
@@ -330,7 +332,11 @@ workflow {
             update_source_genome(params.source_assembly_accession, retrieve_source_genome.out.source_fasta,
                                  retrieve_source_genome.out.source_report, params.remapping_config)
             update_target_genome(retrieve_target_genome.out.target_fasta, retrieve_target_genome.out.target_report, params.remapping_config)
-            extract_vcf_from_mongo(update_source_genome.out.updated_source_fasta, update_source_genome.out.updated_source_report)
+            extract_vcf_from_mongo(
+                update_source_genome.out.updated_source_fasta,
+                update_source_genome.out.updated_source_report,
+                params.taxonomy_list
+            )
             remap_variants(extract_vcf_from_mongo.out.source_vcfs.flatten(), update_source_genome.out.updated_source_fasta,
                            update_target_genome.out.updated_target_fasta)
             ingest_vcf_into_mongo(remap_variants.out.remapped_vcfs, update_target_genome.out.updated_target_report)
