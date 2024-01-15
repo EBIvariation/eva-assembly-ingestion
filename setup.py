@@ -16,14 +16,22 @@ setup(
     version=version,
     license='Apache',
     description='Tools for ingesting a new assembly for a species',
+    long_description='Tools and Workflow used by EVA to add new supported assembly for a species. All the submitted '
+                     'variants will be remapped to the newly supported assembly, clustered variants will be recreated '
+                     'and potential merge and split event be resolved.',
     url='https://github.com/EBIvariation/eva-assembly-ingestion',
     keywords=['ebi', 'eva', 'python'],
     install_requires=requirements,
+    python_requires='>=3.8',
+    author='EVA team',
+    author_email='eva-dev@ebi.ac.uk',
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
         'Topic :: Software Development :: Build Tools',
         'License :: OSI Approved :: Apache Software License',
-        'Programming Language :: Python :: 3'
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+
     ]
 )

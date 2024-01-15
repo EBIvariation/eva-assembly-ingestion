@@ -1,0 +1,5 @@
+include *.md
+include *.txt
+include VERSION
+recursive-include bin *.py
+recursive-exclude tests *
