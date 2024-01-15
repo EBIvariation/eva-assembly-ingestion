@@ -201,7 +201,7 @@ class AssemblyIngestionJob(AppLogger):
             'target_assembly_accession': self.target_assembly,
             # the actual species name does not need to match the taxonomy
             # since it is only here to locate the fasta/report files
-            'species_name': self.scientific_name(taxonomy_list[0]),
+            'species_name': self.scientific_name(self.source_taxonomy),
             'output_dir': assembly_directory,
             'genome_assembly_dir': cfg['genome_downloader']['output_directory'],
             'extraction_properties': extraction_properties_file,
