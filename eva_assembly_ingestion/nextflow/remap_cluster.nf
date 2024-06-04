@@ -16,18 +16,15 @@ def helpMessage() {
             --extraction_properties         path to extraction properties file
             --ingestion_properties          path to ingestion properties file
             --clustering_properties         path to clustering properties file
-            --clustering_instance           instance id to use for clustering
             --output_dir                    path to the directory where the output file should be copied.
             --remapping_config              path to the remapping configuration file
             --remapping_required            flag that sets the remapping as required if true otherwise the remapping is skipped and only the clustering can be run
-            --memory                        memory in GB to use for memory-hungry processes (e.g. Java), default 8GB
     """
 }
 
 params.source_assembly_accession = null
 params.target_assembly_accession = null
 params.species_name = null
-params.memory = 8
 // help
 params.help = null
 
@@ -52,6 +49,8 @@ empty_ch = params.remapping_required ? Channel.empty() : Channel.of(params.genom
 
 
 process retrieve_source_genome {
+    label 'short_time', 'med_mem'
+
     when:
     source_assembly_accession != params.target_assembly_accession
 
@@ -72,6 +71,7 @@ process retrieve_source_genome {
 
 
 process retrieve_target_genome {
+    label 'short_time', 'med_mem'
 
     input:
     val target_assembly_accession
@@ -89,6 +89,7 @@ process retrieve_target_genome {
 }
 
 process update_source_genome {
+    label 'short_time', 'med_mem'
 
     input:
     val(source_assembly_accession)
@@ -106,6 +107,7 @@ process update_source_genome {
 }
 
 process update_target_genome {
+    label 'short_time', 'med_mem'
 
     input:
     path target_fasta
@@ -126,8 +128,7 @@ process update_target_genome {
  * Extract the submitted variants to remap from the accessioning warehouse and store them in a VCF file.
  */
 process extract_vcf_from_mongo {
-    memory "${params.memory}GB"
-    clusterOptions "-g /accession"
+    label 'long_time', 'med_mem'
 
     input:
     path source_fasta
@@ -142,7 +143,7 @@ process extract_vcf_from_mongo {
     publishDir "$params.output_dir/logs", overwrite: true, mode: "copy", pattern: "*.log*"
 
     """
-    java -Xmx8G -jar $params.jar.vcf_extractor \
+    java -Xmx${task.memory.toGiga()-1}G -jar $params.jar.vcf_extractor \
         --spring.config.location=file:${params.extraction_properties} \
         --parameters.fasta=${source_fasta} \
         --parameters.assemblyReportUrl=file:${source_report} \
@@ -156,7 +157,7 @@ process extract_vcf_from_mongo {
  * Variant remapping pipeline
  */
 process remap_variants {
-    memory "${params.memory}GB"
+    label 'long_time', 'med_mem'
 
     input:
     each path(source_vcf)
@@ -195,8 +196,7 @@ process remap_variants {
  * Ingest the remapped submitted variants from a VCF file into the accessioning warehouse.
  */
 process ingest_vcf_into_mongo {
-    memory "${params.memory}GB"
-    clusterOptions "-g /accession"
+    label 'long_time', 'med_mem'
 
     input:
     each path(remapped_vcf)
@@ -217,7 +217,7 @@ process ingest_vcf_into_mongo {
         loadTo=DBSNP
     fi
 
-    java -Xmx8G -jar $params.jar.vcf_ingestion \
+    java -Xmx${task.memory.toGiga()-1}G -jar $params.jar.vcf_ingestion \
         --spring.config.location=file:${params.ingestion_properties} \
         --parameters.vcf=${remapped_vcf} \
         --parameters.assemblyReportUrl=file:${target_report} \
@@ -227,8 +227,7 @@ process ingest_vcf_into_mongo {
 }
 
 process process_remapped_variants {
-    memory "${params.memory}GB"
-    clusterOptions "-g /accession"
+    label 'long_time', 'med_mem'
 
     input:
     path ingestion_log
@@ -236,13 +235,12 @@ process process_remapped_variants {
 
     output:
     path "${source_to_target}_process_remapped.log", emit: process_remapped_log_filename
-    // TODO this also generates a rs report, for "newly remapped" rs - should we QC this separately?
     path "${source_to_target}_rs_report.txt", optional: true, emit: rs_report_filename
 
     publishDir "$params.output_dir/logs", overwrite: true, mode: "copy", pattern: "*.log*"
 
     """
-    java -Xmx8G -jar $params.jar.clustering \
+    java -Xmx${task.memory.toGiga()-1}G -jar $params.jar.clustering \
         --spring.config.location=file:${params.clustering_properties} \
         --spring.batch.job.names=PROCESS_REMAPPED_VARIANTS_WITH_RS_JOB \
         > ${source_to_target}_process_remapped.log
@@ -250,8 +248,7 @@ process process_remapped_variants {
 }
 
 process cluster_unclustered_variants {
-    memory "${params.memory}GB"
-    clusterOptions "-g /accession/instance-${params.clustering_instance}"
+    label 'long_time', 'med_mem'
 
     input:
     path process_remapped_log
@@ -264,7 +261,7 @@ process cluster_unclustered_variants {
     publishDir "$params.output_dir/logs", overwrite: true, mode: "copy"
 
     """
-    java -Xmx8G -jar $params.jar.clustering \
+    java -Xmx${task.memory.toGiga()-1}G -jar $params.jar.clustering \
         --spring.config.location=file:${params.clustering_properties} \
         --spring.batch.job.names=CLUSTER_UNCLUSTERED_VARIANTS_JOB \
         > ${source_to_target}_clustering.log
@@ -275,8 +272,7 @@ process cluster_unclustered_variants {
  * Run clustering QC job
  */
 process qc_clustering {
-    memory "${params.memory}GB"
-    clusterOptions "-g /accession"
+    label 'long_time', 'med_mem'
 
     input:
     path rs_report
@@ -288,7 +284,7 @@ process qc_clustering {
     publishDir "$params.output_dir/logs", overwrite: true, mode: "copy", pattern: "*.log*"
 
     """
-    java -Xmx8G -jar $params.jar.clustering \
+    java -Xmx${task.memory.toGiga()-1}G -jar $params.jar.clustering \
         --spring.config.location=file:${params.clustering_properties} \
         --spring.batch.job.names=NEW_CLUSTERED_VARIANTS_QC_JOB \
         > ${source_to_target}_clustering_qc.log
@@ -300,8 +296,7 @@ process qc_clustering {
  * Run Back propagation of new clustered RS
  */
 process backpropagate_clusters {
-    memory "${params.memory}GB"
-    clusterOptions "-g /accession"
+    label 'long_time', 'med_mem'
 
     input:
     path "clustering_qc.log"
@@ -312,7 +307,7 @@ process backpropagate_clusters {
     publishDir "$params.output_dir/logs", overwrite: true, mode: "copy", pattern: "*.log*"
 
     """
-    java -Xmx8G -jar $params.jar.clustering \
+    java -Xmx${task.memory.toGiga()-1}G -jar $params.jar.clustering \
         --spring.config.location=file:${params.clustering_properties} \
         --parameters.remappedFrom=${params.source_assembly_accession} \
         --spring.batch.job.names=BACK_PROPAGATE_SPLIT_OR_MERGED_RS_JOB \

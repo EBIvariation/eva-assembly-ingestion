@@ -31,6 +31,7 @@ from ebi_eva_common_pyutils.spring_properties import SpringPropertiesGenerator
 from ebi_eva_common_pyutils.taxonomy.taxonomy import get_scientific_name_from_taxonomy
 from psycopg2.extras import execute_values
 
+from eva_assembly_ingestion.config import get_nextflow_config_flag
 from eva_assembly_ingestion.parse_counts import count_variants_extracted, count_variants_remapped, \
     count_variants_ingested
 
@@ -67,11 +68,11 @@ class AssemblyIngestionJob(AppLogger):
             taxonomy_list = [self.source_taxonomy]
         return taxonomy_list
 
-    def run_all(self, tasks, instance, source_of_assembly, resume):
+    def run_all(self, tasks, source_of_assembly, resume):
         if 'load_tracker' in tasks:
             self.load_tracker()
         if 'remap_cluster' in tasks:
-            self.run_remapping_and_clustering(instance, resume)
+            self.run_remapping_and_clustering(resume)
         if 'update_dbs' in tasks:
             self.update_dbs(source_of_assembly)
 
@@ -151,14 +152,14 @@ class AssemblyIngestionJob(AppLogger):
             )
             return get_all_results_for_query(pg_conn, query)
 
-    def run_remapping_and_clustering(self, instance, resume):
+    def run_remapping_and_clustering(self, resume):
         """Run remapping and clustering for all source assemblies in the tracker marked as not Complete, resuming
         the nextflow process if specified. (Note that this will also resume or rerun anything marked as Failed.)"""
         source_assemblies_and_taxonomies = self.get_incomplete_assemblies_and_taxonomies()
         for source_assembly, taxonomy_list in source_assemblies_and_taxonomies:
             self.info(f'Running remapping and clustering for the following assemblies: {source_assembly} '
                       f'for taxonomy {", ".join([str(t) for t in taxonomy_list])}')
-            self.process_one_assembly(source_assembly, taxonomy_list, instance, resume)
+            self.process_one_assembly(source_assembly, taxonomy_list, resume)
 
     def get_incomplete_assemblies_and_taxonomies(self):
         incomplete_assemblies = []
@@ -170,7 +171,7 @@ class AssemblyIngestionJob(AppLogger):
                 incomplete_assemblies.append((source_assembly, taxonomies))
         return incomplete_assemblies
 
-    def process_one_assembly(self, source_assembly, taxonomy_list,  instance, resume):
+    def process_one_assembly(self, source_assembly, taxonomy_list, resume):
         self.set_status_start(source_assembly, taxonomy_list)
         base_directory = cfg['remapping']['base_directory']
         nextflow_pipeline = os.path.join(os.path.dirname(__file__), 'nextflow', 'remap_cluster.nf')
@@ -188,7 +189,6 @@ class AssemblyIngestionJob(AppLogger):
         )
         clustering_template_file = self.create_clustering_properties(
             output_file_path=os.path.join(assembly_directory, 'clustering_template.properties'),
-            instance=instance,
             source_assembly=source_assembly
         )
 
@@ -207,7 +207,6 @@ class AssemblyIngestionJob(AppLogger):
             'extraction_properties': extraction_properties_file,
             'ingestion_properties': ingestion_properties_file,
             'clustering_properties': clustering_template_file,
-            'clustering_instance': instance,
             'remapping_config': cfg.config_file,
             'remapping_required': remapping_required
         }
@@ -221,7 +220,8 @@ class AssemblyIngestionJob(AppLogger):
                 '-log', remapping_log,
                 'run', nextflow_pipeline,
                 '-params-file', remap_cluster_config_file,
-                '-work-dir', work_dir
+                '-work-dir', work_dir,
+                get_nextflow_config_flag()
             ]
             if resume:
                 command.append('-resume')
@@ -261,9 +261,8 @@ class AssemblyIngestionJob(AppLogger):
             open_file.write(properties)
         return output_file_path
 
-    def create_clustering_properties(self, output_file_path, instance, source_assembly):
+    def create_clustering_properties(self, output_file_path, source_assembly):
         properties = self.properties_generator.get_clustering_properties(
-            instance=instance,
             source_assembly=source_assembly,
             target_assembly=self.target_assembly,
             rs_report_path=f'{source_assembly}_to_{self.target_assembly}_rs_report.txt'

@@ -21,8 +21,8 @@ Example usage:
 # Run everything
 add_target_assembly.py --taxonomy 9031 --target_assembly GCA_016699485.1 --release_version 5
 
-# Run remapping and clustering only, resume and run on a specific instance
-add_target_assembly.py --taxonomy 9031 --target_assembly GCA_016699485.1 --release_version 5 --tasks remap_cluster --instance 3 --resume
+# Run remapping and clustering only, resume
+add_target_assembly.py --taxonomy 9031 --target_assembly GCA_016699485.1 --release_version 5 --tasks remap_cluster --resume
 ```
 
 ### Custom assembly generation
