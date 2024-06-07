@@ -182,12 +182,22 @@ process remap_variants {
     done
     PATH=`pwd`/bin:\$PATH
     source $params.executable.python_activate
+
+    # Set nextflow config if needed - has to be passed via commandline arg rather than env var
+    if [[ -z "\${ASSEMBLY_NEXTFLOW_CONFIG:-}" ]]
+    then
+        nextflow_config_flag=""
+    else
+        nextflow_config_flag="-c \${ASSEMBLY_NEXTFLOW_CONFIG}"
+    fi
+
     # Nextflow needs the full path to the input parameters hence the pwd
     $params.executable.nextflow run $params.nextflow.remapping -resume \
       --oldgenome `pwd`/${source_fasta} \
       --newgenome `pwd`/${target_fasta} \
       --vcffile `pwd`/${source_vcf} \
-      --outfile `pwd`/${basename_source_vcf}_remapped.vcf
+      --outfile `pwd`/${basename_source_vcf}_remapped.vcf \
+      \${nextflow_config_flag}
     """
 }
 
