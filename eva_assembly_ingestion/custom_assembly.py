@@ -22,8 +22,8 @@ from typing import List, Dict
 from cached_property import cached_property
 from ebi_eva_common_pyutils.config import cfg
 from ebi_eva_common_pyutils.logger import AppLogger
-from ebi_eva_common_pyutils.metadata_utils import get_metadata_connection_handle
-from ebi_eva_common_pyutils.pg_utils import get_all_results_for_query
+from ebi_eva_internal_pyutils.metadata_utils import get_metadata_connection_handle
+from ebi_eva_internal_pyutils.pg_utils import get_all_results_for_query
 from retry import retry
 
 

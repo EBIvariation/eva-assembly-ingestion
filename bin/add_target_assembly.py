@@ -13,7 +13,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from argparse import ArgumentParser, ArgumentError
+from argparse import ArgumentParser
 
 from ebi_eva_common_pyutils.logger import logging_config
 

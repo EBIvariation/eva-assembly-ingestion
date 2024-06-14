@@ -17,9 +17,9 @@ from argparse import ArgumentParser
 
 import requests
 from ebi_eva_common_pyutils.logger import logging_config
-from ebi_eva_common_pyutils.metadata_utils import get_metadata_connection_handle, insert_new_assembly_and_taxonomy
-from ebi_eva_common_pyutils.pg_utils import get_all_results_for_query
 from ebi_eva_common_pyutils.taxonomy.taxonomy import get_scientific_name_from_ensembl
+from ebi_eva_internal_pyutils.metadata_utils import get_metadata_connection_handle, insert_new_assembly_and_taxonomy
+from ebi_eva_internal_pyutils.pg_utils import get_all_results_for_query
 
 logger = logging_config.get_logger(__name__)
 logging_config.add_stdout_handler()

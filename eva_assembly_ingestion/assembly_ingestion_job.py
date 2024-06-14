@@ -21,14 +21,14 @@ from cached_property import cached_property
 from ebi_eva_common_pyutils.command_utils import run_command_with_output
 from ebi_eva_common_pyutils.common_utils import pretty_print
 from ebi_eva_common_pyutils.config import cfg
-from ebi_eva_common_pyutils.config_utils import get_contig_alias_db_creds_for_profile
 from ebi_eva_common_pyutils.contig_alias.contig_alias import ContigAliasClient
 from ebi_eva_common_pyutils.logger import AppLogger
-from ebi_eva_common_pyutils.metadata_utils import get_metadata_connection_handle, insert_new_assembly_and_taxonomy, \
-    add_to_supported_assemblies
-from ebi_eva_common_pyutils.pg_utils import execute_query, get_all_results_for_query
-from ebi_eva_common_pyutils.spring_properties import SpringPropertiesGenerator
 from ebi_eva_common_pyutils.taxonomy.taxonomy import get_scientific_name_from_taxonomy
+from ebi_eva_internal_pyutils.config_utils import get_contig_alias_db_creds_for_profile
+from ebi_eva_internal_pyutils.metadata_utils import get_metadata_connection_handle, insert_new_assembly_and_taxonomy, \
+    add_to_supported_assemblies
+from ebi_eva_internal_pyutils.pg_utils import execute_query, get_all_results_for_query
+from ebi_eva_internal_pyutils.spring_properties import SpringPropertiesGenerator
 from psycopg2.extras import execute_values
 
 from eva_assembly_ingestion.config import get_nextflow_config_flag
@@ -36,6 +36,7 @@ from eva_assembly_ingestion.parse_counts import count_variants_extracted, count_
     count_variants_ingested
 
 SUPPORTED_ASSEMBLY_TRACKER_TABLE = "evapro.supported_assembly_tracker"
+
 
 class AssemblyIngestionJob(AppLogger):
     all_tasks = ['load_tracker', 'remap_cluster', 'update_dbs']
