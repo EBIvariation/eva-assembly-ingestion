@@ -13,7 +13,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from argparse import ArgumentParser, ArgumentError
+from argparse import ArgumentParser
 
 from ebi_eva_common_pyutils.logger import logging_config
 
@@ -32,8 +32,6 @@ def main():
                           help='Task or set of tasks to perform (defaults to all)')
     argparse.add_argument('--release_version', required=True, type=int,
                           help='Release version this assembly will be processed for')
-    argparse.add_argument('--instance', help="Accessioning instance id for clustering", required=False, default=6,
-                          type=int, choices=range(1, 13))
     argparse.add_argument('--resume', help='If a process has been run already this will resume it.',
                           action='store_true', default=False)
     args = argparse.parse_args()
@@ -45,7 +43,6 @@ def main():
 
     job.run_all(
         tasks=args.tasks,
-        instance=args.instance,
         source_of_assembly=args.source_of_assembly,
         resume=args.resume
     )

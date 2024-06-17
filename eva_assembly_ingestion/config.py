@@ -14,3 +14,15 @@ def load_config(*args):
         os.getenv('ASSEMBLYCONFIG'),
         os.path.expanduser('~/.assembly_config.yml'),
     )
+
+
+def get_nextflow_config_flag():
+    """
+    Return the commandline flag for Nextflow to use the config provided in environment variable ASSEMBLY_NEXTFLOW_CONFIG.
+    If not provided, return an empty string, which allows Nextflow to use the default precedence as described here:
+    https://www.nextflow.io/docs/latest/config.html
+    """
+    env_val = os.getenv('ASSEMBLY_NEXTFLOW_CONFIG')
+    if env_val:
+        return f'-c {env_val}'
+    return ''

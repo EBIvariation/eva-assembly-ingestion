@@ -20,7 +20,6 @@ nextflow run ${SOURCE_DIR}/eva_assembly_ingestion/nextflow/remap_cluster.nf -par
 	 --extraction_properties ${SCRIPT_DIR}/template.properties \
 	 --ingestion_properties ${SCRIPT_DIR}/template.properties \
 	 --clustering_properties ${SCRIPT_DIR}/template.properties \
-	 --clustering_instance 1 \
 	 --output_dir ${SCRIPT_DIR}/output \
 	 --remapping_config ${SCRIPT_DIR}/test_config.yaml \
 	 --remapping_required 1 \
