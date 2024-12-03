@@ -138,7 +138,7 @@ class AssemblyIngestionJob(AppLogger):
                 f"LEFT OUTER JOIN evapro.project_analysis USING (project_accession) "
                 f"LEFT OUTER JOIN evapro.analysis USING (analysis_accession) "
                 f"WHERE taxonomy_id in ({', '.join([str(t) for t in self.taxonomies])}) "
-                f"AND ena_status=4 AND hidden_in_eva=0 "
+                f"AND ena_status=4 AND hidden_in_eva=0 AND vcf_reference_accession IS NOT NULL "
                 f"GROUP BY vcf_reference_accession, taxonomy_id"
             )
             return get_all_results_for_query(pg_conn, query)
