@@ -354,8 +354,8 @@ workflow {
             backpropagate_clusters(qc_clustering.out.clustering_qc_log_filename.collect())
         }else{
             // We're using params.genome_assembly_dir because cluster_unclustered_variants needs to receive a file object
-            cluster_unclustered_variants(params.genome_assembly_dir)
-            qc_clustering(cluster_unclustered_variants.out.rs_report_filename)
+            cluster_unclustered_variants(params.genome_assembly_dir, source_to_target)
+            qc_clustering(cluster_unclustered_variants.out.rs_report_filename, source_to_target)
         }
 
 }
