@@ -25,6 +25,8 @@ def main():
     argparse = ArgumentParser(description='Add a new target assembly for a given taxonomy')
     argparse.add_argument('--taxonomy', required=True, type=int, help='Taxonomy id to be processed')
     argparse.add_argument('--target_assembly', required=True, type=str, help='New target assembly accession')
+    argparse.add_argument('--source_assembly_to_process', required=False, type=str,
+                          help='only process one of the source assembly instead of running them alls')
     argparse.add_argument('--source_of_assembly', required=False, type=str, default='Ensembl',
                           help='Source of new target assembly (default Ensembl)')
     argparse.add_argument('--tasks', required=False, type=str, nargs='+',
@@ -44,7 +46,8 @@ def main():
     job.run_all(
         tasks=args.tasks,
         source_of_assembly=args.source_of_assembly,
-        resume=args.resume
+        resume=args.resume,
+        source_assembly_to_process=args.source_assembly_to_process,
     )
 
 

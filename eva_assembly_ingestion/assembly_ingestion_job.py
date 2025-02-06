@@ -69,11 +69,11 @@ class AssemblyIngestionJob(AppLogger):
             taxonomy_list = [self.source_taxonomy]
         return taxonomy_list
 
-    def run_all(self, tasks, source_of_assembly, resume):
+    def run_all(self, tasks, source_of_assembly, resume, source_assembly_to_process=None):
         if 'load_tracker' in tasks:
             self.load_tracker()
         if 'remap_cluster' in tasks:
-            self.run_remapping_and_clustering(resume)
+            self.run_remapping_and_clustering(resume, source_assembly_to_process)
         if 'update_dbs' in tasks:
             self.update_dbs(source_of_assembly)
 
@@ -153,11 +153,13 @@ class AssemblyIngestionJob(AppLogger):
             )
             return get_all_results_for_query(pg_conn, query)
 
-    def run_remapping_and_clustering(self, resume):
+    def run_remapping_and_clustering(self, resume, source_assembly_to_process=None):
         """Run remapping and clustering for all source assemblies in the tracker marked as not Complete, resuming
         the nextflow process if specified. (Note that this will also resume or rerun anything marked as Failed.)"""
         source_assemblies_and_taxonomies = self.get_incomplete_assemblies_and_taxonomies()
         for source_assembly, taxonomy_list in source_assemblies_and_taxonomies:
+            if source_assembly_to_process is not None and source_assembly_to_process != source_assembly:
+                continue
             self.info(f'Running remapping and clustering for the following assemblies: {source_assembly} '
                       f'for taxonomy {", ".join([str(t) for t in taxonomy_list])}')
             self.process_one_assembly(source_assembly, taxonomy_list, resume)
