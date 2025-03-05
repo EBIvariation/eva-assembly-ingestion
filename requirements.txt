@@ -1,4 +1,4 @@
-ebi-eva-common-pyutils[eva-internal]==0.6.12
+ebi-eva-common-pyutils[eva-internal]==0.6.13
 pyyaml
 requests
 retry
