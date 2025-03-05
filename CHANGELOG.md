@@ -1,7 +1,7 @@
-## 0.1.4 (unreleased)
+## 0.1.4 (2025-03-05)
 
 
-- Nothing changed yet.
+- Bump pyutils version again
 
 
 ## 0.1.3 (2025-03-05)
