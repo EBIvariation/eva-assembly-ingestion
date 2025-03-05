@@ -1,7 +1,7 @@
-## 0.1.3 (unreleased)
+## 0.1.3 (2025-03-05)
 
 
-- Nothing changed yet.
+- Update pyutils version to include new properties
 
 
 ## 0.1.2 (2025-02-07)
