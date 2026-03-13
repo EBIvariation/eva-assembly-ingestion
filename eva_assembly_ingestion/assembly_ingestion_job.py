@@ -255,32 +255,29 @@ class AssemblyIngestionJob(AppLogger):
             open_file.write(properties)
         return output_file_path
 
-    # TODO update this to update all sources at once
-    def set_status(self, source_assembly, taxonomy_list, status, start_time=None, end_time=None):
-        for taxonomy in taxonomy_list:
-            query = f"UPDATE {self.tracking_table} SET remapping_status='{status}' "
-            if start_time:
-                query += f", remapping_start='{start_time.isoformat()}' "
-            if end_time:
-                query += f", remapping_end='{end_time.isoformat()}' "
-            query += (
-                f"WHERE release_version={self.release_version} "
-                f"AND origin_assembly_accession='{source_assembly}' AND taxonomy={taxonomy}"
-            )
-            with get_metadata_connection_handle(self.maven_profile, self.private_settings_file) as pg_conn:
-                execute_query(pg_conn, query)
+    def set_status(self, source_assemblies_and_taxonomies, status, start_time=None, end_time=None):
+        for source_assembly, taxonomy_list in source_assemblies_and_taxonomies:
+            for taxonomy in taxonomy_list:
+                query = f"UPDATE {self.tracking_table} SET remapping_status='{status}' "
+                if start_time:
+                    query += f", remapping_start='{start_time.isoformat()}' "
+                if end_time:
+                    query += f", remapping_end='{end_time.isoformat()}' "
+                query += (
+                    f"WHERE release_version={self.release_version} "
+                    f"AND origin_assembly_accession='{source_assembly}' AND taxonomy={taxonomy}"
+                )
+                with get_metadata_connection_handle(self.maven_profile, self.private_settings_file) as pg_conn:
+                    execute_query(pg_conn, query)
 
     def set_status_start(self, source_assemblies_and_taxonomies):
-        for source_assembly, taxonomy_list in source_assemblies_and_taxonomies:
-            self.set_status(source_assembly, taxonomy_list, 'Started', start_time=datetime.datetime.now())
+        self.set_status(source_assemblies_and_taxonomies, 'Started', start_time=datetime.datetime.now())
 
     def set_status_end(self, source_assemblies_and_taxonomies):
-        for source_assembly, taxonomy_list in source_assemblies_and_taxonomies:
-            self.set_status(source_assembly, taxonomy_list, 'Completed', end_time=datetime.datetime.now())
+        self.set_status(source_assemblies_and_taxonomies, 'Completed', end_time=datetime.datetime.now())
 
     def set_status_failed(self, source_assemblies_and_taxonomies):
-        for source_assembly, taxonomy_list in source_assemblies_and_taxonomies:
-            self.set_status(source_assembly, taxonomy_list,  'Failed')
+        self.set_status(source_assemblies_and_taxonomies,  'Failed')
 
     def set_counts(self, source_assembly, taxonomy, source, nb_variant_extracted=None, nb_variant_remapped=None,
                    nb_variant_ingested=None):

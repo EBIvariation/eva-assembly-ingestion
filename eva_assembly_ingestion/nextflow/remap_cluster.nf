@@ -74,8 +74,7 @@ workflow {
             remap_variants.out.remapped_vcfs, 
             update_target_genome.out.updated_target_report)
 
-        gather_counts(
-            ingest_vcf_into_mongo.out.ingestion_log_filename)
+        gather_counts(ingest_vcf_into_mongo.out.ingestion_log_filename)
 
         // Cluster target assembly
         process_remapped_variants(ingest_vcf_into_mongo.out.ingestion_log_filename.collect())
@@ -309,7 +308,6 @@ process gather_counts {
 }
 
 
-// TODO check whether clustering jobs require remappedFrom = source_assembly_accession
 process process_remapped_variants {
     label 'long_time', 'med_mem'
 
@@ -329,7 +327,7 @@ process process_remapped_variants {
         --spring.batch.job.names=PROCESS_REMAPPED_VARIANTS_WITH_RS_JOB \
         > ${params.target_assembly_accession}_process_remapped.log
 
-    # Ensure we always create an RS report, to enable downstream processing
+    # Ensure we always create an RS report, to trigger downstream processing
     touch ${params.target_assembly_accession}_rs_report.txt
     mv ${params.target_assembly_accession}_rs_report.txt ${params.target_assembly_accession}_remapped_rs_report.txt
     """
@@ -354,7 +352,7 @@ process cluster_unclustered_variants {
         --spring.batch.job.names=CLUSTER_UNCLUSTERED_VARIANTS_JOB \
         > ${params.target_assembly_accession}_clustering.log
 
-    # Ensure we always create an RS report, to enable downstream processing
+    # Ensure we always create an RS report, to trigger downstream processing
     touch ${params.target_assembly_accession}_rs_report.txt
     mv ${params.target_assembly_accession}_rs_report.txt ${params.target_assembly_accession}_new_rs_report.txt
     """
@@ -420,6 +418,7 @@ process qc_clustering_duplicate_rs_acc {
 
     publishDir "$params.output_dir/logs", overwrite: true, mode: "copy", pattern: "*.log*"
 
+    script:
     """
     java -Xmx${task.memory.toGiga()-1}G -jar $params.jar.clustering \
          --spring.config.location=file:${params.clustering_properties} \
