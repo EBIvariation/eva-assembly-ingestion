@@ -47,15 +47,13 @@ workflow {
 
     if (remapping_required) {
         // Get only source assemblies and tax IDs that require remapping
-        source_asm_and_tax_id = Channel.fromList(params.source_assemblies_and_taxonomies)
-            .filter { (source_asm, tax_id) -> source_asm != params.target_assembly_accession }
+        source_asm_and_tax_ids = Channel.fromList(params.source_assemblies_and_taxonomies)
+            .filter { (source_asm, tax_ids) -> source_asm != params.target_assembly_accession }
 
         // Process source genomes
-        retrieve_source_genome(source_asm_and_tax_id, species_name)
+        retrieve_source_genome(source_asm_and_tax_ids, species_name)
         update_source_genome(
-            source_asm_and_tax_id,
-            retrieve_source_genome.out.source_fasta,
-            retrieve_source_genome.out.source_report,
+            retrieve_source_genome.out.fasta_and_report,
             params.remapping_config)
 
         // Process target genome
@@ -65,43 +63,38 @@ workflow {
             retrieve_target_genome.out.target_report,
             params.remapping_config)
 
-
         // Remap required source assemblies
-        extract_vcf_from_mongo(
-            source_asm_and_tax_id,
-            update_source_genome.out.updated_source_fasta,
-            update_source_genome.out.updated_source_report
-        )
+        asm_tax_fasta_report = source_asm_and_tax_ids.combine(update_source_genome.out.updated_fasta_and_report, by: 0)
+            .transpose()
+        extract_vcf_from_mongo(asm_tax_fasta_report)
         remap_variants(
-            extract_vcf_from_mongo.out.source_vcfs.flatten(),
-            update_source_genome.out.updated_source_fasta,
+            extract_vcf_from_mongo.out.source_vcfs.transpose(),
             update_target_genome.out.updated_target_fasta)
         ingest_vcf_into_mongo(
-            source_asm_and_tax_id,
             remap_variants.out.remapped_vcfs, 
             update_target_genome.out.updated_target_report)
+
         gather_counts(
-            ingest_vcf_into_mongo.out.ingestion_log_filename.collect(),
-            source_asm_and_tax_id)
+            ingest_vcf_into_mongo.out.ingestion_log_filename)
 
         // Cluster target assembly
         process_remapped_variants(ingest_vcf_into_mongo.out.ingestion_log_filename.collect())
-        cluster_unclustered_variants(process_remapped_variants.out.process_remapped_log_filename)
-        // TODO check how the QC will work, do we need to change it now...
-        process_remapped_variants.out.rs_report_filename
-                .concat(cluster_unclustered_variants.out.rs_report_filename)
-                .set{ rs_reports }
-        qc_clustering(rs_reports)
+        qc_process_remapped(process_remapped_variants.out.rs_report_filename)
+        cluster_unclustered_variants(qc_process_remapped.out.qc_log_filename)
+        qc_clustering(cluster_unclustered_variants.out.rs_report_filename)
+        qc_clustering_duplicate_rs_acc(cluster_unclustered_variants.out.rs_report_filename)
         
         // Backpropagate to source assemblies
         backpropagate_clusters(
-            source_asm_and_tax_id,
-            qc_clustering.out.clustering_qc_log_filename.collect())
+            source_asm_and_tax_ids,
+            qc_clustering.out.qc_log_filename,
+            qc_clustering_duplicate_rs_acc.out.qc_log_filename)
     } else {
         // Only perform clustering on target assembly
         // We're using params.genome_assembly_dir because cluster_unclustered_variants needs to receive a file object
         cluster_unclustered_variants(params.genome_assembly_dir)
         qc_clustering(cluster_unclustered_variants.out.rs_report_filename)
+        qc_clustering_duplicate_rs_acc(cluster_unclustered_variants.out.rs_report_filename)
     }
 }
 
@@ -110,12 +103,11 @@ process retrieve_source_genome {
     label 'short_time', 'med_mem'
 
     input:
-    tuple val(source_assembly_accession), val(taxonomy)
+    tuple val(source_assembly_accession), val(taxonomy_list)
     val species_name
 
     output:
-    path "${source_assembly_accession}.fa", emit: source_fasta
-    path "${source_assembly_accession}_assembly_report.txt", emit: source_report
+    tuple val(source_assembly_accession), path("${source_assembly_accession}.fa"), path("${source_assembly_accession}_assembly_report.txt"), emit: fasta_and_report
 
     script:
     """
@@ -149,14 +141,11 @@ process update_source_genome {
     label 'short_time', 'med_mem'
 
     input:
-    tuple val(source_assembly_accession), val(taxonomy)
-    path(source_fasta)
-    path(source_report)
+    tuple val(source_assembly_accession), path(source_fasta), path(source_report)
     env REMAPPINGCONFIG
 
     output:
-    path  "${source_fasta.getBaseName()}_custom.fa", emit: updated_source_fasta
-    path  "${source_report.getBaseName()}_custom.txt", emit: updated_source_report
+    tuple val(source_assembly_accession), path("${source_fasta.getBaseName()}_custom.fa"), path("${source_report.getBaseName()}_custom.txt"), emit: updated_fasta_and_report
 
     script:
     """
@@ -190,13 +179,11 @@ process extract_vcf_from_mongo {
     label 'long_time', 'med_mem'
 
     input:
-    tuple val(source_assembly_accession), val(taxonomy)
-    path source_fasta
-    path source_report
+    tuple val(source_assembly_accession), val(taxonomy), path(source_fasta), path(source_report)
 
     output:
     // Store both vcfs (eva and dbsnp), emit: one channel
-    path '*.vcf', emit: source_vcfs
+    tuple val(source_assembly_accession), val(taxonomy), path(source_fasta), path(source_report), path('*.vcf'), emit: source_vcfs
     path "${source_assembly_accession}_${taxonomy}_vcf_extractor.log", emit: log_filename
 
     publishDir "$params.output_dir/logs", overwrite: true, mode: "copy", pattern: "*.log*"
@@ -221,13 +208,11 @@ process remap_variants {
     label 'long_time', 'med_mem'
 
     input:
-    // TODO how to run this for both dbsnp and eva vcfs?
-    path source_vcf
-    path source_fasta
+    tuple val(source_assembly_accession), val(taxonomy), path(source_fasta), path(source_report), path(source_vcf)
     path target_fasta
 
     output:
-    path "${basename_source_vcf}_remapped.vcf", emit: remapped_vcfs
+    tuple val(source_assembly_accession), val(taxonomy), path("${basename_source_vcf}_remapped.vcf"), emit: remapped_vcfs
     path "${basename_source_vcf}_remapped_unmapped.vcf", emit: unmapped_vcfs
     path "${basename_source_vcf}_remapped_counts.yml", emit: remapped_ymls
 
@@ -275,12 +260,11 @@ process ingest_vcf_into_mongo {
     maxForks 1
 
     input:
-    tuple val(source_assembly_accession), val(taxonomy)
-    path remapped_vcf
+    tuple val(source_assembly_accession), val(taxonomy), path(remapped_vcf)
     path target_report
 
     output:
-    path "${remapped_vcf}_ingestion.log", emit: ingestion_log_filename
+    tuple val(source_assembly_accession), val(taxonomy), path("${remapped_vcf}_ingestion.log"), emit: ingestion_log_filename
 
     publishDir "$params.output_dir/logs", overwrite: true, mode: "copy", pattern: "*.log*"
 
@@ -311,8 +295,7 @@ process gather_counts {
     label 'default_time', 'default_mem'
 
     input:
-    path ingestion_log
-    tuple val(source_assembly_accession), val(taxonomy)
+    tuple val(source_assembly_accession), val(taxonomy), path(ingestion_log)
 
     script:
     """
@@ -331,13 +314,13 @@ process process_remapped_variants {
     label 'long_time', 'med_mem'
 
     input:
-    path ingestion_log
+    val ingestion_output
 
     output:
     path "${params.target_assembly_accession}_process_remapped.log", emit: process_remapped_log_filename
-    path "${params.target_assembly_accession}_rs_report.txt", optional: true, emit: rs_report_filename
+    path "${params.target_assembly_accession}_remapped_rs_report.txt", emit: rs_report_filename
 
-    publishDir "$params.output_dir/logs", overwrite: true, mode: "copy", pattern: "*.log*"
+    publishDir "$params.output_dir/logs", overwrite: true, mode: "copy"
 
     script:
     """
@@ -345,6 +328,10 @@ process process_remapped_variants {
         --spring.config.location=file:${params.clustering_properties} \
         --spring.batch.job.names=PROCESS_REMAPPED_VARIANTS_WITH_RS_JOB \
         > ${params.target_assembly_accession}_process_remapped.log
+
+    # Ensure we always create an RS report, to enable downstream processing
+    touch ${params.target_assembly_accession}_rs_report.txt
+    mv ${params.target_assembly_accession}_rs_report.txt ${params.target_assembly_accession}_remapped_rs_report.txt
     """
 }
 
@@ -356,7 +343,7 @@ process cluster_unclustered_variants {
 
     output:
     path "${params.target_assembly_accession}_clustering.log", emit: clustering_log_filename
-    path "${params.target_assembly_accession}_rs_report.txt", optional: true, emit: rs_report_filename
+    path "${params.target_assembly_accession}_new_rs_report.txt", emit: rs_report_filename
 
     publishDir "$params.output_dir/logs", overwrite: true, mode: "copy"
 
@@ -366,11 +353,38 @@ process cluster_unclustered_variants {
         --spring.config.location=file:${params.clustering_properties} \
         --spring.batch.job.names=CLUSTER_UNCLUSTERED_VARIANTS_JOB \
         > ${params.target_assembly_accession}_clustering.log
+
+    # Ensure we always create an RS report, to enable downstream processing
+    touch ${params.target_assembly_accession}_rs_report.txt
+    mv ${params.target_assembly_accession}_rs_report.txt ${params.target_assembly_accession}_new_rs_report.txt
     """
 }
 
 /*
- * Run clustering QC job
+ * Run QC for remapped RS IDs
+ */
+process qc_process_remapped {
+    label 'long_time', 'med_mem'
+
+    input:
+    path rs_report
+
+    output:
+    path "${params.target_assembly_accession}_process_remapped_qc.log", emit: qc_log_filename
+
+    publishDir "$params.output_dir/logs", overwrite: true, mode: "copy", pattern: "*.log*"
+
+    script:
+    """
+    java -Xmx${task.memory.toGiga()-1}G -jar $params.jar.clustering \
+        --spring.config.location=file:${params.clustering_properties} \
+        --spring.batch.job.names=NEW_CLUSTERED_VARIANTS_QC_JOB \
+        > ${params.target_assembly_accession}_process_remapped_qc.log
+    """
+}
+
+/*
+ * Run QC for new RS IDs
  */
 process qc_clustering {
     label 'long_time', 'med_mem'
@@ -379,7 +393,7 @@ process qc_clustering {
     path rs_report
 
     output:
-    path "${params.target_assembly_accession}_clustering_qc.log", emit: clustering_qc_log_filename
+    path "${params.target_assembly_accession}_clustering_qc.log", emit: qc_log_filename
 
     publishDir "$params.output_dir/logs", overwrite: true, mode: "copy", pattern: "*.log*"
 
@@ -392,6 +406,35 @@ process qc_clustering {
     """
 }
 
+/*
+ * Run QC job for detecting duplicate RS accessions
+ */
+process qc_clustering_duplicate_rs_acc {
+    label 'long_time', 'med_mem'
+
+    input:
+    path rs_report
+
+    output:
+    path "${params.target_assembly_accession}_clustering_qc_duplicate_rs_acc.log", emit: qc_log_filename
+
+    publishDir "$params.output_dir/logs", overwrite: true, mode: "copy", pattern: "*.log*"
+
+    """
+    java -Xmx${task.memory.toGiga()-1}G -jar $params.jar.clustering \
+         --spring.config.location=file:${params.clustering_properties} \
+         --spring.batch.job.names=DUPLICATE_RS_ACC_QC_JOB \
+         --parameters.duplicateRSAccFile=${params.target_assembly_accession}_duplicate_rs_accessions.txt \
+         > ${params.target_assembly_accession}_clustering_qc_duplicate_rs_acc.log
+
+    # Fail if the file is not empty
+    if [ -s ${params.target_assembly_accession}_duplicate_rs_accessions.txt ]; then
+        echo "Duplicate RS accessions detected! Failing the process."
+        exit 1
+    fi
+    """
+}
+
 
 /*
  * Run Back propagation of new clustered RS
@@ -401,7 +444,8 @@ process backpropagate_clusters {
 
     input:
     tuple val(source_assembly_accession), val(taxonomy)
-    path "clustering_qc.log"
+    path clustering_qc_log
+    path clustering_duplicate_qc_log
 
     output:
     path "${params.target_assembly_accession}_backpropagate_to_${source_assembly_accession}.log", emit: backpropagate_log_filename
