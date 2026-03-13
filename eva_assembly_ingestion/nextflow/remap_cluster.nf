@@ -9,7 +9,7 @@ def helpMessage() {
 
     Inputs:
             --release_version                   release version
-            --source_assemblies_and_taxonomies  source assemblies and associated taxonomies needing remapping
+            --source_assemblies_and_taxonomies  source assemblies and taxonomies needing remapping
             --target_assembly_accession         assembly accession the submitted variants will be remapped to.
             --species_name                      scientific name to be used for the species.
             --genome_assembly_dir               path to the directory where the genome should be downloaded.
@@ -47,8 +47,16 @@ workflow {
 
     if (remapping_required) {
         // Get only source assemblies and tax IDs that require remapping
-        source_asm_and_tax_ids_ch = Channel.fromList(params.source_assemblies_and_taxonomies)
-            .filter { (source_asm, tax_ids) -> source_asm != params.target_assembly_accession }
+        source_asm_and_tax_id = Channel.fromList(params.source_assemblies_and_taxonomies)
+            .filter { (source_asm, tax_id) -> source_asm != params.target_assembly_accession }
+
+        // Process source genomes
+        retrieve_source_genome(source_asm_and_tax_id, species_name)
+        update_source_genome(
+            source_asm_and_tax_id,
+            retrieve_source_genome.out.source_fasta,
+            retrieve_source_genome.out.source_report,
+            params.remapping_config)
 
         // Process target genome
         retrieve_target_genome(params.target_assembly_accession, species_name)
@@ -57,29 +65,24 @@ workflow {
             retrieve_target_genome.out.target_report,
             params.remapping_config)
 
-        // Process source genomes
-        retrieve_source_genome(source_asm_and_tax_ids_ch, species_name)
-        update_source_genome(
-            retrieve_source_genome.out.source_assembly_accession,
-            retrieve_source_genome.out.source_fasta,
-            retrieve_source_genome.out.source_report,
-            params.remapping_config)
 
         // Remap required source assemblies
         extract_vcf_from_mongo(
+            source_asm_and_tax_id,
             update_source_genome.out.updated_source_fasta,
-            update_source_genome.out.updated_source_report,
-            retrieve_source_genome.out.taxonomy_list
+            update_source_genome.out.updated_source_report
         )
         remap_variants(
             extract_vcf_from_mongo.out.source_vcfs.flatten(),
             update_source_genome.out.updated_source_fasta,
             update_target_genome.out.updated_target_fasta)
         ingest_vcf_into_mongo(
-            retrieve_source_genome.out.source_assembly_accession,
+            source_asm_and_tax_id,
             remap_variants.out.remapped_vcfs, 
             update_target_genome.out.updated_target_report)
-        gather_counts(retrieve_source_genome.out.source_assembly_accession, retrieve_source_genome.out.taxonomy_list)
+        gather_counts(
+            ingest_vcf_into_mongo.out.ingestion_log_filename.collect(),
+            source_asm_and_tax_id)
 
         // Cluster target assembly
         process_remapped_variants(ingest_vcf_into_mongo.out.ingestion_log_filename.collect())
@@ -92,7 +95,7 @@ workflow {
         
         // Backpropagate to source assemblies
         backpropagate_clusters(
-            retrieve_source_genome.out.source_assembly_accession,
+            source_asm_and_tax_id,
             qc_clustering.out.clustering_qc_log_filename.collect())
     } else {
         // Only perform clustering on target assembly
@@ -107,17 +110,14 @@ process retrieve_source_genome {
     label 'short_time', 'med_mem'
 
     input:
-    val asm_and_tax
+    tuple val(source_assembly_accession), val(taxonomy)
     val species_name
 
     output:
-    path "${asm_and_tax[0]}.fa", emit: source_fasta
-    path "${asm_and_tax[0]}_assembly_report.txt", emit: source_report
-    val asm_and_tax[0], emit: source_assembly_accession
-    val asm_and_tax[1], emit: taxonomy_list
+    path "${source_assembly_accession}.fa", emit: source_fasta
+    path "${source_assembly_accession}_assembly_report.txt", emit: source_report
 
     script:
-    source_assembly_accession = asm_and_tax[0]
     """
     $params.executable.genome_downloader --assembly-accession ${source_assembly_accession} --species ${species_name} --output-directory ${params.genome_assembly_dir}
     ln -s ${params.genome_assembly_dir}/${species_name}/${source_assembly_accession}/${source_assembly_accession}.fa
@@ -149,7 +149,7 @@ process update_source_genome {
     label 'short_time', 'med_mem'
 
     input:
-    val(source_assembly_accession)
+    tuple val(source_assembly_accession), val(taxonomy)
     path(source_fasta)
     path(source_report)
     env REMAPPINGCONFIG
@@ -190,10 +190,9 @@ process extract_vcf_from_mongo {
     label 'long_time', 'med_mem'
 
     input:
-    val source_assembly_accession
+    tuple val(source_assembly_accession), val(taxonomy)
     path source_fasta
     path source_report
-    each taxonomy
 
     output:
     // Store both vcfs (eva and dbsnp), emit: one channel
@@ -209,7 +208,7 @@ process extract_vcf_from_mongo {
         --parameters.assemblyAccession=${source_assembly_accession} \
         --parameters.fasta=${source_fasta} \
         --parameters.assemblyReportUrl=file:${source_report} \
-        --parameters.taxonomy=${taxonomy}
+        --parameters.taxonomy=${taxonomy} \
         > ${source_assembly_accession}_${taxonomy}_vcf_extractor.log
     """
 }
@@ -222,7 +221,8 @@ process remap_variants {
     label 'long_time', 'med_mem'
 
     input:
-    each path(source_vcf)
+    // TODO how to run this for both dbsnp and eva vcfs?
+    path source_vcf
     path source_fasta
     path target_fasta
 
@@ -275,8 +275,8 @@ process ingest_vcf_into_mongo {
     maxForks 1
 
     input:
-    val source_assembly_accession
-    each path(remapped_vcf)
+    tuple val(source_assembly_accession), val(taxonomy)
+    path remapped_vcf
     path target_report
 
     output:
@@ -296,7 +296,7 @@ process ingest_vcf_into_mongo {
 
     java -Xmx${task.memory.toGiga()-1}G -jar $params.jar.vcf_ingestion \
         --spring.config.location=file:${params.ingestion_properties} \
-        --parameters.remappedFrom=${source_assembly_accession}
+        --parameters.remappedFrom=${source_assembly_accession} \
         --parameters.vcf=${remapped_vcf} \
         --parameters.assemblyReportUrl=file:${target_report} \
         --parameters.loadTo=\${loadTo} \
@@ -311,20 +311,22 @@ process gather_counts {
     label 'default_time', 'default_mem'
 
     input:
-    val source_assembly_accession
-    each taxonomy
+    path ingestion_log
+    tuple val(source_assembly_accession), val(taxonomy)
 
     script:
     """
-    ${params.executable.count_variants_from_logs} --source_assembly ${source_assembly_accession} \
+    ${params.executable.count_variants_from_logs} \
+        --source_assembly ${source_assembly_accession} \
         --taxonomy ${taxonomy} \
         --target_assembly ${params.target_assembly_accession} \
         --output_directory ${params.output_dir} \
-        --release_version ${$params.release_version}
+        --release_version ${params.release_version}
     """
 }
 
 
+// TODO check whether clustering jobs require remappedFrom = source_assembly_accession
 process process_remapped_variants {
     label 'long_time', 'med_mem'
 
@@ -398,7 +400,7 @@ process backpropagate_clusters {
     label 'long_time', 'med_mem'
 
     input:
-    val source_assembly_accession
+    tuple val(source_assembly_accession), val(taxonomy)
     path "clustering_qc.log"
 
     output:

@@ -1,8 +1,15 @@
-taxonomy_list: [1233, 1234]
+source_assemblies_and_taxonomies:
+- - GCA_0000001.1
+  - 1233
+- - GCA_0000001.1
+  - 1234
+- - GCA_0000001.2
+  - 1234
 
 executable:
   genome_downloader: ../../../bin/fake_genome_downloader.py
   custom_assembly: ../../../bin/fake_custom_assembly.py
+  count_variants_from_logs: ../../../bin/fake_count_variants.py
   nextflow: nextflow
   bcftools: bcftools
   samtools: samtools

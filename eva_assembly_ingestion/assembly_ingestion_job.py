@@ -188,11 +188,13 @@ class AssemblyIngestionJob(AppLogger):
             output_file_path=os.path.join(taxonomy_directory, 'clustering_template.properties')
         )
 
+        source_pairs = [[src_asm, tax_id] for src_asm, tax_ids in source_assemblies_and_taxonomies for tax_id in tax_ids]
+
         remapping_log = os.path.join(taxonomy_directory, 'remapping_process.log')
         remap_cluster_config_file = os.path.join(taxonomy_directory, 'remap_cluster_config.yaml')
         remap_cluster_config = {
             'release_version': self.release_version,
-            'source_assemblies_and_taxonomies': source_assemblies_and_taxonomies,
+            'source_assemblies_and_taxonomies': source_pairs,
             'target_assembly_accession': self.target_assembly,
             # the actual species name does not need to match the taxonomy
             # since it is only here to locate the fasta/report files
@@ -229,9 +231,6 @@ class AssemblyIngestionJob(AppLogger):
         finally:
             os.chdir(curr_working_dir)
         self.set_status_end(source_assemblies_and_taxonomies)
-
-    def check_remapping_required(self, source_assembly):
-        return source_assembly != self.target_assembly
 
     def create_extraction_properties(self, output_file_path):
         properties = self.properties_generator.get_remapping_extraction_properties(
