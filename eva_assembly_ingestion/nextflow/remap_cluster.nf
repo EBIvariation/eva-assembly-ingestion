@@ -442,7 +442,7 @@ process backpropagate_clusters {
     label 'long_time', 'med_mem'
 
     input:
-    tuple val(source_assembly_accession), val(taxonomy)
+    tuple val(source_assembly_accession), val(taxonomy_list)
     path clustering_qc_log
     path clustering_duplicate_qc_log
 
