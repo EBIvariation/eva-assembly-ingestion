@@ -56,7 +56,7 @@ class AssemblyIngestionJob(AppLogger):
 
     @cached_property
     def taxonomies(self):
-        # The taxonomy involved are all the taxonomies that have the same current target assembly
+        # The taxonomies involved are all the taxonomies that have the same current target assembly
         taxonomy_query = (
             f"select taxonomy_id from {SUPPORTED_ASSEMBLY_TRACKER_TABLE} where current=true AND assembly_id in ("
             f"    SELECT assembly_id FROM {SUPPORTED_ASSEMBLY_TRACKER_TABLE} "
@@ -69,11 +69,11 @@ class AssemblyIngestionJob(AppLogger):
             taxonomy_list = [self.source_taxonomy]
         return taxonomy_list
 
-    def run_all(self, tasks, source_of_assembly, resume, source_assembly_to_process=None):
+    def run_all(self, tasks, source_of_assembly, resume):
         if 'load_tracker' in tasks:
             self.load_tracker()
         if 'remap_cluster' in tasks:
-            self.run_remapping_and_clustering(resume, source_assembly_to_process)
+            self.run_remapping_and_clustering(resume)
         if 'update_dbs' in tasks:
             self.update_dbs(source_of_assembly)
 
@@ -153,16 +153,11 @@ class AssemblyIngestionJob(AppLogger):
             )
             return get_all_results_for_query(pg_conn, query)
 
-    def run_remapping_and_clustering(self, resume, source_assembly_to_process=None):
+    def run_remapping_and_clustering(self, resume):
         """Run remapping and clustering for all source assemblies in the tracker marked as not Complete, resuming
         the nextflow process if specified. (Note that this will also resume or rerun anything marked as Failed.)"""
         source_assemblies_and_taxonomies = self.get_incomplete_assemblies_and_taxonomies()
-        for source_assembly, taxonomy_list in source_assemblies_and_taxonomies:
-            if source_assembly_to_process is not None and source_assembly_to_process != source_assembly:
-                continue
-            self.info(f'Running remapping and clustering for the following assemblies: {source_assembly} '
-                      f'for taxonomy {", ".join([str(t) for t in taxonomy_list])}')
-            self.process_one_assembly(source_assembly, taxonomy_list, resume)
+        self.process_all_assemblies(source_assemblies_and_taxonomies, resume)
 
     def get_incomplete_assemblies_and_taxonomies(self):
         incomplete_assemblies = []
@@ -174,44 +169,40 @@ class AssemblyIngestionJob(AppLogger):
                 incomplete_assemblies.append((source_assembly, taxonomies))
         return incomplete_assemblies
 
-    def process_one_assembly(self, source_assembly, taxonomy_list, resume):
-        self.set_status_start(source_assembly, taxonomy_list)
-        base_directory = cfg['remapping']['base_directory']
+    def process_all_assemblies(self, source_assemblies_and_taxonomies, resume):
+        self.set_status_start(source_assemblies_and_taxonomies)
+
         nextflow_pipeline = os.path.join(os.path.dirname(__file__), 'nextflow', 'remap_cluster.nf')
-        assembly_directory = os.path.join(base_directory, ",".join([str(t) for t in taxonomy_list]), source_assembly)
-        work_dir = os.path.join(assembly_directory, 'work')
+        base_directory = cfg['remapping']['base_directory']
+        taxonomy_directory = os.path.join(base_directory, self.source_taxonomy)
+        work_dir = os.path.join(taxonomy_directory, 'work')
         os.makedirs(work_dir, exist_ok=True)
 
         extraction_properties_file = self.create_extraction_properties(
-            output_file_path=os.path.join(assembly_directory, 'remapping_extraction.properties'),
-            source_assembly=source_assembly
+            output_file_path=os.path.join(taxonomy_directory, 'remapping_extraction.properties')
         )
         ingestion_properties_file = self.create_ingestion_properties(
-            output_file_path=os.path.join(assembly_directory, 'remapping_ingestion.properties'),
-            source_assembly=source_assembly
+            output_file_path=os.path.join(taxonomy_directory, 'remapping_ingestion.properties')
         )
         clustering_template_file = self.create_clustering_properties(
-            output_file_path=os.path.join(assembly_directory, 'clustering_template.properties'),
-            source_assembly=source_assembly
+            output_file_path=os.path.join(taxonomy_directory, 'clustering_template.properties')
         )
 
-        remapping_log = os.path.join(assembly_directory, 'remapping_process.log')
-        remap_cluster_config_file = os.path.join(assembly_directory, 'remap_cluster_config.yaml')
-        remapping_required = self.check_remapping_required(source_assembly)
+        remapping_log = os.path.join(taxonomy_directory, 'remapping_process.log')
+        remap_cluster_config_file = os.path.join(taxonomy_directory, 'remap_cluster_config.yaml')
         remap_cluster_config = {
-            'taxonomy_list': taxonomy_list,
-            'source_assembly_accession': source_assembly,
+            'release_version': self.release_version,
+            'source_assemblies_and_taxonomies': source_assemblies_and_taxonomies,
             'target_assembly_accession': self.target_assembly,
             # the actual species name does not need to match the taxonomy
             # since it is only here to locate the fasta/report files
             'species_name': self.scientific_name(self.source_taxonomy),
-            'output_dir': assembly_directory,
+            'output_dir': taxonomy_directory,
             'genome_assembly_dir': cfg['genome_downloader']['output_directory'],
             'extraction_properties': extraction_properties_file,
             'ingestion_properties': ingestion_properties_file,
             'clustering_properties': clustering_template_file,
-            'remapping_config': cfg.config_file,
-            'remapping_required': remapping_required
+            'remapping_config': cfg.config_file
         }
         for part in ['executable', 'nextflow', 'jar']:
             remap_cluster_config[part] = cfg[part]
@@ -229,73 +220,64 @@ class AssemblyIngestionJob(AppLogger):
             if resume:
                 command.append('-resume')
             curr_working_dir = os.getcwd()
-            os.chdir(assembly_directory)
+            os.chdir(taxonomy_directory)
             run_command_with_output('Nextflow remapping process', ' '.join(command))
         except subprocess.CalledProcessError as e:
             self.error('Nextflow remapping pipeline failed')
-            self.set_status_failed(source_assembly, taxonomy_list)
+            self.set_status_failed(source_assemblies_and_taxonomies)
             raise e
         finally:
             os.chdir(curr_working_dir)
-        self.set_status_end(source_assembly, taxonomy_list)
-        if remapping_required:
-            self.count_variants_from_logs(assembly_directory, source_assembly, taxonomy_list)
-        else:
-            self.info(f"No remapping required. Skipping variant counts from logs")
+        self.set_status_end(source_assemblies_and_taxonomies)
 
-    def check_remapping_required(self, source_assembly):
-        return source_assembly != self.target_assembly
-
-    def create_extraction_properties(self, output_file_path, source_assembly):
+    def create_extraction_properties(self, output_file_path):
         properties = self.properties_generator.get_remapping_extraction_properties(
-            source_assembly=source_assembly,
             output_folder='.',
         )
         with open(output_file_path, 'w') as open_file:
             open_file.write(properties)
         return output_file_path
 
-    def create_ingestion_properties(self, output_file_path, source_assembly):
+    def create_ingestion_properties(self, output_file_path):
         properties = self.properties_generator.get_remapping_ingestion_properties(
-            source_assembly=source_assembly,
             target_assembly=self.target_assembly
         )
         with open(output_file_path, 'w') as open_file:
             open_file.write(properties)
         return output_file_path
 
-    def create_clustering_properties(self, output_file_path, source_assembly):
+    def create_clustering_properties(self, output_file_path):
         properties = self.properties_generator.get_clustering_properties(
-            source_assembly=source_assembly,
             target_assembly=self.target_assembly,
-            rs_report_path=f'{source_assembly}_to_{self.target_assembly}_rs_report.txt'
+            rs_report_path=f'{self.target_assembly}_rs_report.txt'
         )
         with open(output_file_path, 'w') as open_file:
             open_file.write(properties)
         return output_file_path
 
-    def set_status(self, source_assembly, taxonomy_list, status, start_time=None, end_time=None):
-        for taxonomy in taxonomy_list:
-            query = f"UPDATE {self.tracking_table} SET remapping_status='{status}' "
-            if start_time:
-                query += f", remapping_start='{start_time.isoformat()}' "
-            if end_time:
-                query += f", remapping_end='{end_time.isoformat()}' "
-            query += (
-                f"WHERE release_version={self.release_version} "
-                f"AND origin_assembly_accession='{source_assembly}' AND taxonomy={taxonomy}"
-            )
-            with get_metadata_connection_handle(self.maven_profile, self.private_settings_file) as pg_conn:
-                execute_query(pg_conn, query)
+    def set_status(self, source_assemblies_and_taxonomies, status, start_time=None, end_time=None):
+        for source_assembly, taxonomy_list in source_assemblies_and_taxonomies:
+            for taxonomy in taxonomy_list:
+                query = f"UPDATE {self.tracking_table} SET remapping_status='{status}' "
+                if start_time:
+                    query += f", remapping_start='{start_time.isoformat()}' "
+                if end_time:
+                    query += f", remapping_end='{end_time.isoformat()}' "
+                query += (
+                    f"WHERE release_version={self.release_version} "
+                    f"AND origin_assembly_accession='{source_assembly}' AND taxonomy={taxonomy}"
+                )
+                with get_metadata_connection_handle(self.maven_profile, self.private_settings_file) as pg_conn:
+                    execute_query(pg_conn, query)
 
-    def set_status_start(self, source_assembly, taxonomy_list):
-        self.set_status(source_assembly, taxonomy_list, 'Started', start_time=datetime.datetime.now())
+    def set_status_start(self, source_assemblies_and_taxonomies):
+        self.set_status(source_assemblies_and_taxonomies, 'Started', start_time=datetime.datetime.now())
 
-    def set_status_end(self, source_assembly, taxonomy_list):
-        self.set_status(source_assembly, taxonomy_list, 'Completed', end_time=datetime.datetime.now())
+    def set_status_end(self, source_assemblies_and_taxonomies):
+        self.set_status(source_assemblies_and_taxonomies, 'Completed', end_time=datetime.datetime.now())
 
-    def set_status_failed(self, source_assembly, taxonomy_list):
-        self.set_status(source_assembly, taxonomy_list,  'Failed')
+    def set_status_failed(self, source_assemblies_and_taxonomies):
+        self.set_status(source_assemblies_and_taxonomies,  'Failed')
 
     def set_counts(self, source_assembly, taxonomy, source, nb_variant_extracted=None, nb_variant_remapped=None,
                    nb_variant_ingested=None):
@@ -325,17 +307,17 @@ class AssemblyIngestionJob(AppLogger):
             with get_metadata_connection_handle(cfg['maven']['environment'], cfg['maven']['settings_file']) as pg_conn:
                 execute_query(pg_conn, query)
 
-    def count_variants_from_logs(self, assembly_directory, source_assembly, taxonomy_list):
+    def count_variants_from_logs(self, output_directory, source_assembly, taxonomy_list):
         for taxonomy in taxonomy_list:
-            vcf_extractor_log = os.path.join(assembly_directory, 'logs',
+            vcf_extractor_log = os.path.join(output_directory, 'logs',
                                              f'{source_assembly}_{taxonomy}_vcf_extractor.log')
-            eva_remapping_count = os.path.join(assembly_directory, 'eva',
+            eva_remapping_count = os.path.join(output_directory, 'eva',
                                                f'{source_assembly}_{taxonomy}_eva_remapped_counts.yml')
-            dbsnp_remapping_count = os.path.join(assembly_directory, 'dbsnp',
+            dbsnp_remapping_count = os.path.join(output_directory, 'dbsnp',
                                                  f'{source_assembly}_{taxonomy}_dbsnp_remapped_counts.yml')
-            eva_ingestion_log = os.path.join(assembly_directory, 'logs',
+            eva_ingestion_log = os.path.join(output_directory, 'logs',
                                              f'{source_assembly}_{taxonomy}_eva_remapped.vcf_ingestion.log')
-            dbsnp_ingestion_log = os.path.join(assembly_directory, 'logs',
+            dbsnp_ingestion_log = os.path.join(output_directory, 'logs',
                                                f'{source_assembly}_{taxonomy}_dbsnp_remapped.vcf_ingestion.log')
 
             eva_total, eva_written, dbsnp_total, dbsnp_written = count_variants_extracted(vcf_extractor_log)
@@ -346,26 +328,26 @@ class AssemblyIngestionJob(AppLogger):
             eva_ingestion_candidate, eva_ingested, eva_duplicates = count_variants_ingested(eva_ingestion_log)
             dbsnp_ingestion_candidate, dbsnp_ingested, dbsnp_duplicates = count_variants_ingested(dbsnp_ingestion_log)
 
-        self.set_counts(
-            source_assembly, taxonomy, 'EVA',
-            nb_variant_extracted=eva_written,
-            nb_variant_remapped=eva_remapped,
-            nb_variant_ingested=eva_ingestion_candidate
-        )
-        self.set_counts(
-            source_assembly, taxonomy, 'DBSNP',
-            nb_variant_extracted=dbsnp_written,
-            nb_variant_remapped=dbsnp_remapped,
-            nb_variant_ingested=dbsnp_ingestion_candidate
-        )
+            self.set_counts(
+                source_assembly, taxonomy, 'EVA',
+                nb_variant_extracted=eva_written,
+                nb_variant_remapped=eva_remapped,
+                nb_variant_ingested=eva_ingestion_candidate
+            )
+            self.set_counts(
+                source_assembly, taxonomy, 'DBSNP',
+                nb_variant_extracted=dbsnp_written,
+                nb_variant_remapped=dbsnp_remapped,
+                nb_variant_ingested=dbsnp_ingestion_candidate
+            )
 
-        self.info(f'For Taxonomy: {taxonomy} and Assembly: {source_assembly} Source: EVA ')
-        self.info(f'Number of variant read:{eva_total}, written:{eva_written}, attempt remapping: {eva_candidate}, '
-                  f'remapped: {eva_remapped}, failed remapped {eva_unmapped}')
-        self.info(f'For Taxonomy: {taxonomy} and Assembly: {source_assembly} Source: DBSNP ')
-        self.info(
-            f'Number of variant read:{dbsnp_total}, written:{dbsnp_written}, attempt remapping: {dbsnp_candidate}, '
-            f'remapped: {dbsnp_remapped}, failed remapped {dbsnp_unmapped}')
+            self.info(f'For Taxonomy: {taxonomy} and Assembly: {source_assembly} Source: EVA ')
+            self.info(f'Number of variant read:{eva_total}, written:{eva_written}, attempt remapping: {eva_candidate}, '
+                      f'remapped: {eva_remapped}, failed remapped {eva_unmapped}')
+            self.info(f'For Taxonomy: {taxonomy} and Assembly: {source_assembly} Source: DBSNP ')
+            self.info(
+                f'Number of variant read:{dbsnp_total}, written:{dbsnp_written}, attempt remapping: {dbsnp_candidate}, '
+                f'remapped: {dbsnp_remapped}, failed remapped {dbsnp_unmapped}')
 
     def update_dbs(self, source_of_assembly):
         """Update all relevant databases to reflect the new assembly."""
