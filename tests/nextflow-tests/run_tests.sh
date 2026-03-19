@@ -43,10 +43,6 @@ ls ${SCRIPT_DIR}/output/dbsnp/GCA_0000001.1_1233_dbsnp_remapped.vcf \
    ${SCRIPT_DIR}/output/eva/GCA_0000001.2_1234_eva_remapped_unmapped.vcf \
    ${SCRIPT_DIR}/output/eva/GCA_0000001.2_1234_eva_remapped_counts.yml
 
-# Test we have 16 log files in the logs directory:
-# 3 extraction, 6 ingestion, 1 process remapped, 1 clustering, 3 QC, 2 backpropagate
-[[ $(find ${SCRIPT_DIR}/output/logs/ -type f -name "*.log" | wc -l) -eq 16 ]]
-
 # Test we have 2 rs_reports in the logs directory
 [[ $(find ${SCRIPT_DIR}/output/logs/ -type f -name "*.txt" | wc -l) -eq 2 ]]
 

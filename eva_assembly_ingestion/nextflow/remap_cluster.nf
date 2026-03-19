@@ -177,25 +177,25 @@ process update_target_genome {
 process extract_vcf_from_mongo {
     label 'long_time', 'med_mem'
 
+    clusterOptions "-o $params.output_dir/logs/${log_filename}.log \
+                    -e $params.output_dir/logs/${log_filename}.err"
+
     input:
     tuple val(source_assembly_accession), val(taxonomy), path(source_fasta), path(source_report)
 
     output:
     // Store both vcfs (eva and dbsnp), emit: one channel
     tuple val(source_assembly_accession), val(taxonomy), path(source_fasta), path(source_report), path('*.vcf'), emit: source_vcfs
-    path "${source_assembly_accession}_${taxonomy}_vcf_extractor.log", emit: log_filename
-
-    publishDir "$params.output_dir/logs", overwrite: true, mode: "copy", pattern: "*.log*"
 
     script:
+    log_filename = "${source_assembly_accession}_${taxonomy}_vcf_extractor"
     """
     java -Xmx${task.memory.toGiga()-1}G -jar $params.jar.vcf_extractor \
         --spring.config.location=file:${params.extraction_properties} \
         --parameters.assemblyAccession=${source_assembly_accession} \
         --parameters.fasta=${source_fasta} \
         --parameters.assemblyReportUrl=file:${source_report} \
-        --parameters.taxonomy=${taxonomy} \
-        > ${source_assembly_accession}_${taxonomy}_vcf_extractor.log
+        --parameters.taxonomy=${taxonomy}
     """
 }
 
@@ -254,6 +254,9 @@ process remap_variants {
 process ingest_vcf_into_mongo {
     label 'long_time', 'med_mem'
 
+    clusterOptions "-o $params.output_dir/logs/${log_filename}.log \
+                    -e $params.output_dir/logs/${log_filename}.err"
+
     // Run ingestions in serial to avoid race conditions when writing variants to Mongo.
     // Note this applies across source assemblies as well as across EVA/dbSNP from the same assembly.
     maxForks 1
@@ -263,11 +266,10 @@ process ingest_vcf_into_mongo {
     path target_report
 
     output:
-    tuple val(source_assembly_accession), val(taxonomy), path("${remapped_vcf}_ingestion.log"), emit: ingestion_log_filename
-
-    publishDir "$params.output_dir/logs", overwrite: true, mode: "copy", pattern: "*.log*"
+    tuple val(source_assembly_accession), val(taxonomy), path("${log_filename}.log"), emit: ingestion_log_filename
 
     script:
+    log_filename = "${remapped_vcf}_ingestion"
     """
     # Check the file name to know which database to load the variants into
     if [[ $remapped_vcf == *_eva_remapped.vcf ]]
@@ -283,7 +285,7 @@ process ingest_vcf_into_mongo {
         --parameters.vcf=${remapped_vcf} \
         --parameters.assemblyReportUrl=file:${target_report} \
         --parameters.loadTo=\${loadTo} \
-        > ${remapped_vcf}_ingestion.log
+        | tee ${log_filename}.log
     """
 }
 
@@ -311,21 +313,23 @@ process gather_counts {
 process process_remapped_variants {
     label 'long_time', 'med_mem'
 
+    clusterOptions "-o $params.output_dir/logs/${log_filename}.log \
+                    -e $params.output_dir/logs/${log_filename}.err"
+
     input:
     val ingestion_output
 
     output:
-    path "${params.target_assembly_accession}_process_remapped.log", emit: process_remapped_log_filename
     path "${params.target_assembly_accession}_remapped_rs_report.txt", emit: rs_report_filename
 
-    publishDir "$params.output_dir/logs", overwrite: true, mode: "copy"
+    publishDir "$params.output_dir/logs", overwrite: true, mode: "copy", pattern: "*.txt"
 
     script:
+    log_filename = "${params.target_assembly_accession}_process_remapped"
     """
     java -Xmx${task.memory.toGiga()-1}G -jar $params.jar.clustering \
         --spring.config.location=file:${params.clustering_properties} \
-        --spring.batch.job.names=PROCESS_REMAPPED_VARIANTS_WITH_RS_JOB \
-        > ${params.target_assembly_accession}_process_remapped.log
+        --spring.batch.job.names=PROCESS_REMAPPED_VARIANTS_WITH_RS_JOB
 
     # Ensure we always create an RS report, to trigger downstream processing
     touch ${params.target_assembly_accession}_rs_report.txt
@@ -336,21 +340,23 @@ process process_remapped_variants {
 process cluster_unclustered_variants {
     label 'long_time', 'med_mem'
 
+    clusterOptions "-o $params.output_dir/logs/${log_filename}.log \
+                    -e $params.output_dir/logs/${log_filename}.err"
+
     input:
-    path process_remapped_log
+    path qc_log_filename
 
     output:
-    path "${params.target_assembly_accession}_clustering.log", emit: clustering_log_filename
     path "${params.target_assembly_accession}_new_rs_report.txt", emit: rs_report_filename
 
-    publishDir "$params.output_dir/logs", overwrite: true, mode: "copy"
+    publishDir "$params.output_dir/logs", overwrite: true, mode: "copy", pattern: "*.txt"
 
     script:
+    log_filename = "${params.target_assembly_accession}_clustering"
     """
     java -Xmx${task.memory.toGiga()-1}G -jar $params.jar.clustering \
         --spring.config.location=file:${params.clustering_properties} \
-        --spring.batch.job.names=CLUSTER_UNCLUSTERED_VARIANTS_JOB \
-        > ${params.target_assembly_accession}_clustering.log
+        --spring.batch.job.names=CLUSTER_UNCLUSTERED_VARIANTS_JOB
 
     # Ensure we always create an RS report, to trigger downstream processing
     touch ${params.target_assembly_accession}_rs_report.txt
@@ -364,20 +370,22 @@ process cluster_unclustered_variants {
 process qc_process_remapped {
     label 'long_time', 'med_mem'
 
+    clusterOptions "-o $params.output_dir/logs/${log_filename}.log \
+                    -e $params.output_dir/logs/${log_filename}.err"
+
     input:
     path rs_report
 
     output:
-    path "${params.target_assembly_accession}_process_remapped_qc.log", emit: qc_log_filename
-
-    publishDir "$params.output_dir/logs", overwrite: true, mode: "copy", pattern: "*.log*"
+    path "${log_filename}.log", emit: qc_log_filename
 
     script:
+    log_filename = "${params.target_assembly_accession}_process_remapped_qc"
     """
     java -Xmx${task.memory.toGiga()-1}G -jar $params.jar.clustering \
         --spring.config.location=file:${params.clustering_properties} \
         --spring.batch.job.names=NEW_CLUSTERED_VARIANTS_QC_JOB \
-        > ${params.target_assembly_accession}_process_remapped_qc.log
+        | tee ${log_filename}.log
     """
 }
 
@@ -387,20 +395,22 @@ process qc_process_remapped {
 process qc_clustering {
     label 'long_time', 'med_mem'
 
+    clusterOptions "-o $params.output_dir/logs/${log_filename}.log \
+                    -e $params.output_dir/logs/${log_filename}.err"
+
     input:
     path rs_report
 
     output:
     path "${params.target_assembly_accession}_clustering_qc.log", emit: qc_log_filename
 
-    publishDir "$params.output_dir/logs", overwrite: true, mode: "copy", pattern: "*.log*"
-
     script:
+    log_filename = "${params.target_assembly_accession}_clustering_qc"
     """
     java -Xmx${task.memory.toGiga()-1}G -jar $params.jar.clustering \
         --spring.config.location=file:${params.clustering_properties} \
         --spring.batch.job.names=NEW_CLUSTERED_VARIANTS_QC_JOB \
-        > ${params.target_assembly_accession}_clustering_qc.log
+        | tee ${log_filename}.log
     """
 }
 
@@ -410,21 +420,23 @@ process qc_clustering {
 process qc_clustering_duplicate_rs_acc {
     label 'long_time', 'med_mem'
 
+    clusterOptions "-o $params.output_dir/logs/${log_filename}.log \
+                    -e $params.output_dir/logs/${log_filename}.err"
+
     input:
     path rs_report
 
     output:
-    path "${params.target_assembly_accession}_clustering_qc_duplicate_rs_acc.log", emit: qc_log_filename
-
-    publishDir "$params.output_dir/logs", overwrite: true, mode: "copy", pattern: "*.log*"
+    path "${log_filename}.log", emit: qc_log_filename
 
     script:
+    log_filename = "${params.target_assembly_accession}_clustering_qc_duplicate_rs_acc"
     """
     java -Xmx${task.memory.toGiga()-1}G -jar $params.jar.clustering \
          --spring.config.location=file:${params.clustering_properties} \
          --spring.batch.job.names=DUPLICATE_RS_ACC_QC_JOB \
          --parameters.duplicateRSAccFile=${params.target_assembly_accession}_duplicate_rs_accessions.txt \
-         > ${params.target_assembly_accession}_clustering_qc_duplicate_rs_acc.log
+         | tee ${log_filename}.log
 
     # Fail if the file is not empty
     if [ -s ${params.target_assembly_accession}_duplicate_rs_accessions.txt ]; then
@@ -441,22 +453,20 @@ process qc_clustering_duplicate_rs_acc {
 process backpropagate_clusters {
     label 'long_time', 'med_mem'
 
+    clusterOptions "-o $params.output_dir/logs/${log_filename}.log \
+                    -e $params.output_dir/logs/${log_filename}.err"
+
     input:
     tuple val(source_assembly_accession), val(taxonomy_list)
     path clustering_qc_log
     path clustering_duplicate_qc_log
 
-    output:
-    path "${params.target_assembly_accession}_backpropagate_to_${source_assembly_accession}.log", emit: backpropagate_log_filename
-
-    publishDir "$params.output_dir/logs", overwrite: true, mode: "copy", pattern: "*.log*"
-
     script:
+    log_filename = "${params.target_assembly_accession}_backpropagate_to_${source_assembly_accession}"
     """
     java -Xmx${task.memory.toGiga()-1}G -jar $params.jar.clustering \
         --spring.config.location=file:${params.clustering_properties} \
         --parameters.remappedFrom=${source_assembly_accession} \
-        --spring.batch.job.names=BACK_PROPAGATE_SPLIT_OR_MERGED_RS_JOB \
-        > ${params.target_assembly_accession}_backpropagate_to_${source_assembly_accession}.log
+        --spring.batch.job.names=BACK_PROPAGATE_SPLIT_OR_MERGED_RS_JOB
     """
 }
