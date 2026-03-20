@@ -174,7 +174,7 @@ class AssemblyIngestionJob(AppLogger):
 
         nextflow_pipeline = os.path.join(os.path.dirname(__file__), 'nextflow', 'remap_cluster.nf')
         base_directory = cfg['remapping']['base_directory']
-        taxonomy_directory = os.path.join(base_directory, self.source_taxonomy)
+        taxonomy_directory = os.path.join(base_directory, str(self.source_taxonomy))
         work_dir = os.path.join(taxonomy_directory, 'work')
         os.makedirs(work_dir, exist_ok=True)
 
