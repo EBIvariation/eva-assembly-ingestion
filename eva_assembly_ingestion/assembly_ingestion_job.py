@@ -166,7 +166,8 @@ class AssemblyIngestionJob(AppLogger):
             source_assembly = row[3]
             status = row[6]
             if status != 'Completed':
-                incomplete_assemblies[source_assembly].append(taxonomy)
+                if taxonomy not in incomplete_assemblies[source_assembly]:
+                    incomplete_assemblies[source_assembly].append(taxonomy)
         return list(incomplete_assemblies.items())
 
     def process_all_assemblies(self, source_assemblies_and_taxonomies, resume):
