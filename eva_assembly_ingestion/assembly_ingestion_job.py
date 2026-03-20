@@ -14,6 +14,7 @@
 import datetime
 import os
 import subprocess
+from collections import defaultdict
 from functools import lru_cache
 
 import yaml
@@ -116,13 +117,12 @@ class AssemblyIngestionJob(AppLogger):
     def get_job_information_from_tracker(self):
         """Gets jobs from tracker by target assembly, taxonomies, and release version"""
         query = (
-            f"SELECT source, string_agg(taxonomy::text, ','), scientific_name, origin_assembly_accession, "
+            f"SELECT source, taxonomy, scientific_name, origin_assembly_accession, "
             f"assembly_accession, num_studies, remapping_status "
             f"FROM {self.tracking_table} "
             f"WHERE release_version={self.release_version} "
             f"AND assembly_accession='{self.target_assembly}' "
             f"AND taxonomy in ({', '.join([str(t) for t in self.taxonomies])})"
-            f"GROUP BY source, scientific_name, origin_assembly_accession, assembly_accession, num_studies, remapping_status"
         )
         with get_metadata_connection_handle(self.maven_profile, self.private_settings_file) as pg_conn:
             return get_all_results_for_query(pg_conn, query)
@@ -160,14 +160,14 @@ class AssemblyIngestionJob(AppLogger):
         self.process_all_assemblies(source_assemblies_and_taxonomies, resume)
 
     def get_incomplete_assemblies_and_taxonomies(self):
-        incomplete_assemblies = []
+        incomplete_assemblies = defaultdict(list)
         for row in self.get_job_information_from_tracker():
-            taxonomies = row[1].split(',')  # Comma separated list of taxonomies
+            taxonomy = row[1]
             source_assembly = row[3]
             status = row[6]
             if status != 'Completed':
-                incomplete_assemblies.append((source_assembly, taxonomies))
-        return incomplete_assemblies
+                incomplete_assemblies[source_assembly].append(taxonomy)
+        return list(incomplete_assemblies.items())
 
     def process_all_assemblies(self, source_assemblies_and_taxonomies, resume):
         self.set_status_start(source_assemblies_and_taxonomies)
