@@ -157,6 +157,9 @@ class AssemblyIngestionJob(AppLogger):
         """Run remapping and clustering for all source assemblies in the tracker marked as not Complete, resuming
         the nextflow process if specified. (Note that this will also resume or rerun anything marked as Failed.)"""
         source_assemblies_and_taxonomies = self.get_incomplete_assemblies_and_taxonomies()
+        if not source_assemblies_and_taxonomies:
+            self.info('No incomplete source assemblies or taxonomies to process')
+            return
         self.process_all_assemblies(source_assemblies_and_taxonomies, resume)
 
     def get_incomplete_assemblies_and_taxonomies(self):
