@@ -1,0 +1,19 @@
+name: Trigger Eva Assembly Ingestion Integration Tests
+
+on:
+  push:
+    branches: [master]
+  # Allow manual trigger from github
+  workflow_dispatch:
+
+jobs:
+  trigger-integration-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger eva-assembly-ingestion integration tests
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token: ${{ secrets.WORKFLOW_ACCESS_TOKEN }}
+          repository: EBIvariation/eva-integration-tests
+          event-type: trigger-eva-assembly-ingestion-tests
+          client-payload: '{"repository": "${{github.repository}}", "ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
