@@ -1,5 +1,5 @@
+import datetime
 import os
-import re
 import unittest
 from unittest.mock import patch, MagicMock
 
@@ -21,15 +21,17 @@ class TestAddToClusteredVariantUpdate(unittest.TestCase):
             ('EVA', '9913,9940', 'Cattle', 'GCA_000000001.1', 'GCA_000003055.3', 10, 'Completed'),
             ('EVA', '9940', 'Cattle', 'GCA_000000002.1', 'GCA_000003055.3', 5, 'Completed'),
         ]
+        mocked_now = datetime.datetime.now()
         with patch('eva_assembly_ingestion.assembly_ingestion_job.get_metadata_connection_handle'), \
                 patch('eva_assembly_ingestion.assembly_ingestion_job.execute_query') as mock_execute_query, \
-                patch.object(self.remapping_job, 'get_job_information_from_tracker', return_value=tracker_rows):
+                patch.object(self.remapping_job, 'get_job_information_from_tracker', return_value=tracker_rows), \
+                patch('eva_assembly_ingestion.assembly_ingestion_job.datetime') as mock_datetime:
+            mock_datetime.datetime.now.return_value = mocked_now
             self.remapping_job.add_to_clustered_variant_update()
         captured_queries = [c[1][1] for c in mock_execute_query.mock_calls]
-        print(captured_queries)
         expected_queries = [
-            "INSERT INTO evapro.clustered_variant_update (taxonomy_id, assembly_accession, source, ingestion_time) VALUES (9913, 'GCA_000003055.3', 'GCA_000000001.1', '2026-04-10 16:21:35.400490')",
-            "INSERT INTO evapro.clustered_variant_update (taxonomy_id, assembly_accession, source, ingestion_time) VALUES (9940, 'GCA_000003055.3', 'GCA_000000001.1', '2026-04-10 16:21:35.400490')",
-            "INSERT INTO evapro.clustered_variant_update (taxonomy_id, assembly_accession, source, ingestion_time) VALUES (9940, 'GCA_000003055.3', 'GCA_000000002.1', '2026-04-10 16:21:35.400490')"
+            f"INSERT INTO evapro.clustered_variant_update (taxonomy_id, assembly_accession, source, ingestion_time) VALUES (9913, 'GCA_000003055.3', 'GCA_000000001.1', '{mocked_now.strftime('%Y-%m-%d %H:%M:%S.%f')}')",
+            f"INSERT INTO evapro.clustered_variant_update (taxonomy_id, assembly_accession, source, ingestion_time) VALUES (9940, 'GCA_000003055.3', 'GCA_000000001.1', '{mocked_now.strftime('%Y-%m-%d %H:%M:%S.%f')}')",
+            f"INSERT INTO evapro.clustered_variant_update (taxonomy_id, assembly_accession, source, ingestion_time) VALUES (9940, 'GCA_000003055.3', 'GCA_000000002.1', '{mocked_now.strftime('%Y-%m-%d %H:%M:%S.%f')}')"
         ]
         assert captured_queries == expected_queries
