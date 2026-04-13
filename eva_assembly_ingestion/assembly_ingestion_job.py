@@ -366,6 +366,7 @@ class AssemblyIngestionJob(AppLogger):
                                             target_assembly=self.target_assembly, taxonomy_id=taxonomy)
         self.add_to_metadata()
         self.add_to_contig_alias()
+        self.add_to_clustered_variant_update()
         self.info('Metadata database updates complete.')
 
     def add_to_metadata(self):
@@ -378,3 +379,14 @@ class AssemblyIngestionJob(AppLogger):
             self.maven_profile, self.private_settings_file)
         client = ContigAliasClient(contig_alias_url, contig_alias_user, contig_alias_pass)
         client.insert_assembly(self.target_assembly)
+
+    def add_to_clustered_variant_update(self):
+        ingestion_time = datetime.datetime.now()
+        with get_metadata_connection_handle(self.maven_profile, self.private_settings_file) as pg_conn:
+            taxonomy_and_assemblies = set((row[1], row[3]) for row in self.get_job_information_from_tracker())
+            for taxonomy, source_assembly in taxonomy_and_assemblies:
+                execute_query(pg_conn, (
+                    f"INSERT INTO evapro.clustered_variant_update "
+                    f"(taxonomy_id, assembly_accession, source, ingestion_time) "
+                    f"VALUES ({taxonomy}, '{self.target_assembly}', '{source_assembly}', '{ingestion_time}')"
+                ))
