@@ -18,8 +18,9 @@ class TestAddToClusteredVariantUpdate(unittest.TestCase):
     def test_inserts_one_row_per_taxonomy_per_source_assembly(self):
         # Two tracker rows with two origin assemblies, each with two taxonomies → 4 inserts
         tracker_rows = [
-            ('EVA', '9913,9940', 'Cattle', 'GCA_000000001.1', 'GCA_000003055.3', 10, 'Completed'),
-            ('EVA', '9940', 'Cattle', 'GCA_000000002.1', 'GCA_000003055.3', 5, 'Completed'),
+            ('EVA', 9913, 'Cattle', 'GCA_000000001.1', 'GCA_000003055.3', 1, 'Completed'),
+            ('DBSNP', 9913, 'Cattle', 'GCA_000000001.1', 'GCA_000003055.3', 1, 'Completed'),
+            ('EVA', 9940, 'Cattle', 'GCA_000000002.1', 'GCA_000003055.3', 1, 'Completed'),
         ]
         mocked_now = datetime.datetime.now()
         with patch('eva_assembly_ingestion.assembly_ingestion_job.get_metadata_connection_handle'), \
@@ -31,7 +32,6 @@ class TestAddToClusteredVariantUpdate(unittest.TestCase):
         captured_queries = [c[1][1] for c in mock_execute_query.mock_calls]
         expected_queries = [
             f"INSERT INTO evapro.clustered_variant_update (taxonomy_id, assembly_accession, source, ingestion_time) VALUES (9913, 'GCA_000003055.3', 'GCA_000000001.1', '{mocked_now.strftime('%Y-%m-%d %H:%M:%S.%f')}')",
-            f"INSERT INTO evapro.clustered_variant_update (taxonomy_id, assembly_accession, source, ingestion_time) VALUES (9940, 'GCA_000003055.3', 'GCA_000000001.1', '{mocked_now.strftime('%Y-%m-%d %H:%M:%S.%f')}')",
-            f"INSERT INTO evapro.clustered_variant_update (taxonomy_id, assembly_accession, source, ingestion_time) VALUES (9940, 'GCA_000003055.3', 'GCA_000000002.1', '{mocked_now.strftime('%Y-%m-%d %H:%M:%S.%f')}')"
+            f"INSERT INTO evapro.clustered_variant_update (taxonomy_id, assembly_accession, source, ingestion_time) VALUES (9940, 'GCA_000003055.3', 'GCA_000000002.1', '{mocked_now.strftime('%Y-%m-%d %H:%M:%S.%f')}')",
         ]
         assert captured_queries == expected_queries

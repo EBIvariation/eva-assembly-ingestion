@@ -383,11 +383,10 @@ class AssemblyIngestionJob(AppLogger):
     def add_to_clustered_variant_update(self):
         ingestion_time = datetime.datetime.now()
         with get_metadata_connection_handle(self.maven_profile, self.private_settings_file) as pg_conn:
-            for row in self.get_job_information_from_tracker():
-                origin_assembly_accession = row[3]
-                for taxonomy in row[1].split(','):
-                    execute_query(pg_conn, (
-                        f"INSERT INTO evapro.clustered_variant_update "
-                        f"(taxonomy_id, assembly_accession, source, ingestion_time) "
-                        f"VALUES ({taxonomy}, '{self.target_assembly}', '{origin_assembly_accession}', '{ingestion_time}')"
-                    ))
+            taxonomy_and_assemblies = set((row[1], row[3]) for row in self.get_job_information_from_tracker())
+            for taxonomy, source_assembly in taxonomy_and_assemblies:
+                execute_query(pg_conn, (
+                    f"INSERT INTO evapro.clustered_variant_update "
+                    f"(taxonomy_id, assembly_accession, source, ingestion_time) "
+                    f"VALUES ({taxonomy}, '{self.target_assembly}', '{source_assembly}', '{ingestion_time}')"
+                ))
