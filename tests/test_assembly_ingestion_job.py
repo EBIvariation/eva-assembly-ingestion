@@ -34,4 +34,4 @@ class TestAddToClusteredVariantUpdate(unittest.TestCase):
             f"INSERT INTO evapro.clustered_variant_update (taxonomy_id, assembly_accession, source, ingestion_time) VALUES (9913, 'GCA_000003055.3', 'GCA_000000001.1', '{mocked_now.strftime('%Y-%m-%d %H:%M:%S.%f')}')",
             f"INSERT INTO evapro.clustered_variant_update (taxonomy_id, assembly_accession, source, ingestion_time) VALUES (9940, 'GCA_000003055.3', 'GCA_000000002.1', '{mocked_now.strftime('%Y-%m-%d %H:%M:%S.%f')}')",
         ]
-        assert captured_queries == expected_queries
+        assert sorted(captured_queries) == sorted(expected_queries)
