@@ -1,7 +1,9 @@
-## 0.1.5 (unreleased)
+## 0.2.0 (2026-04-14)
 
 
-- Nothing changed yet.
+- Remap the source assembly in parallel powered by Nextflow 
+- Append to log files when running again
+- Update release trigger table to ensure the new assembly will be released
 
 
 ## 0.1.4 (2025-03-05)
