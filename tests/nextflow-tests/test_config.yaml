@@ -4,6 +4,8 @@ source_assemblies_and_taxonomies:
     - 1234
 - - GCA_0000001.2
   - - 1234
+- - GCA_0000002
+  - - 1234
 
 executable:
   genome_downloader: ../../../bin/fake_genome_downloader.py
