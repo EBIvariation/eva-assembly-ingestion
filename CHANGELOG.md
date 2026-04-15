@@ -1,8 +1,6 @@
-## 0.2.1 (unreleased)
+## 0.2.1 (2026-04-15)
 
-
-- Nothing changed yet.
-
+- Filter out the source assembly when they are the same as the target  
 
 ## 0.2.0 (2026-04-14)
 
