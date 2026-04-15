@@ -48,7 +48,7 @@ workflow {
     // Source assemblies that differ from target and require remapping
     // (source assemblies equal to target are removed because variants are already in target assembly)
     assemblies_to_remap = Channel.fromList(params.source_assemblies_and_taxonomies)
-        .filter { (source_asm, tax_ids) -> source_asm != params.target_assembly_accession }
+        .filter { it[0] != params.target_assembly_accession }
 
     if (remapping_required) {
         // Process source genomes
