@@ -92,7 +92,7 @@ workflow {
             qc_clustering_duplicate_rs_acc.out.qc_log_filename)
     } else {
         // All source assemblies are already on the target assembly; no remapping needed.
-        cluster_unclustered_variants(Channel.value(params.genome_assembly_dir))
+        cluster_unclustered_variants(Channel.value(1))
         qc_clustering(cluster_unclustered_variants.out.rs_report_filename)
         qc_clustering_duplicate_rs_acc(cluster_unclustered_variants.out.rs_report_filename)
     }
@@ -345,7 +345,7 @@ process cluster_unclustered_variants {
                     -e $params.output_dir/logs/${log_filename}.err"
 
     input:
-    val qc_log_filename
+    val start_flag
 
     output:
     path "${params.target_assembly_accession}_new_rs_report.txt", emit: rs_report_filename
