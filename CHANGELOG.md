@@ -1,3 +1,9 @@
+## 0.2.2 (unreleased)
+
+
+- Nothing changed yet.
+
+
 ## 0.2.1 (2026-04-15)
 
 - Filter out the source assembly when they are the same as the target  
