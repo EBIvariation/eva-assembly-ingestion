@@ -62,3 +62,4 @@ jobs:
         # Run nextflow tests
         export NXF_DEFAULT_DSL=2
         tests/nextflow-tests/run_tests.sh
+        tests/nextflow-tests/run_tests_no_remapping.sh

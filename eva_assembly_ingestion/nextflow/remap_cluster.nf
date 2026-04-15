@@ -45,13 +45,14 @@ workflow {
     species_name = params.species_name.toLowerCase().replace(" ", "_")
     remapping_required = params.source_assemblies_and_taxonomies.any { it[0] != params.target_assembly_accession }
 
-    if (remapping_required) {
-        // Get only source assemblies and tax IDs that require remapping
-        source_asm_and_tax_ids = Channel.fromList(params.source_assemblies_and_taxonomies)
-            .filter { (source_asm, tax_ids) -> source_asm != params.target_assembly_accession }
+    // Source assemblies that differ from target and require remapping
+    // (source assemblies equal to target are removed because variants are already in target assembly)
+    assemblies_to_remap = Channel.fromList(params.source_assemblies_and_taxonomies)
+        .filter { it[0] != params.target_assembly_accession }
 
+    if (remapping_required) {
         // Process source genomes
-        retrieve_source_genome(source_asm_and_tax_ids, species_name)
+        retrieve_source_genome(assemblies_to_remap, species_name)
         update_source_genome(
             retrieve_source_genome.out.fasta_and_report,
             params.remapping_config)
@@ -64,14 +65,14 @@ workflow {
             params.remapping_config)
 
         // Remap required source assemblies
-        asm_tax_fasta_report = source_asm_and_tax_ids.combine(update_source_genome.out.updated_fasta_and_report, by: 0)
+        asm_tax_fasta_report = assemblies_to_remap.combine(update_source_genome.out.updated_fasta_and_report, by: 0)
             .transpose()
         extract_vcf_from_mongo(asm_tax_fasta_report)
         remap_variants(
             extract_vcf_from_mongo.out.source_vcfs.transpose(),
             update_target_genome.out.updated_target_fasta)
         ingest_vcf_into_mongo(
-            remap_variants.out.remapped_vcfs, 
+            remap_variants.out.remapped_vcfs,
             update_target_genome.out.updated_target_report)
 
         gather_counts(ingest_vcf_into_mongo.out.ingestion_log_filename)
@@ -82,16 +83,16 @@ workflow {
         cluster_unclustered_variants(qc_process_remapped.out.qc_log_filename)
         qc_clustering(cluster_unclustered_variants.out.rs_report_filename)
         qc_clustering_duplicate_rs_acc(cluster_unclustered_variants.out.rs_report_filename)
-        
-        // Backpropagate to source assemblies
+
+        // Backpropagate to source assemblies that required remapping
+        // (source assemblies equal to target are excluded — no backpropagation needed)
         backpropagate_clusters(
-            source_asm_and_tax_ids,
+            assemblies_to_remap,
             qc_clustering.out.qc_log_filename,
             qc_clustering_duplicate_rs_acc.out.qc_log_filename)
     } else {
-        // Only perform clustering on target assembly
-        // We're using params.genome_assembly_dir because cluster_unclustered_variants needs to receive a file object
-        cluster_unclustered_variants(params.genome_assembly_dir)
+        // All source assemblies are already on the target assembly; no remapping needed.
+        cluster_unclustered_variants(Channel.value(1))
         qc_clustering(cluster_unclustered_variants.out.rs_report_filename)
         qc_clustering_duplicate_rs_acc(cluster_unclustered_variants.out.rs_report_filename)
     }
@@ -344,7 +345,7 @@ process cluster_unclustered_variants {
                     -e $params.output_dir/logs/${log_filename}.err"
 
     input:
-    path qc_log_filename
+    val start_flag
 
     output:
     path "${params.target_assembly_accession}_new_rs_report.txt", emit: rs_report_filename

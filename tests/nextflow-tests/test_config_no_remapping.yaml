@@ -1,9 +1,4 @@
 source_assemblies_and_taxonomies:
-- - GCA_0000001.1
-  - - 1233
-    - 1234
-- - GCA_0000001.2
-  - - 1234
 - - GCA_0000002
   - - 1234
 
