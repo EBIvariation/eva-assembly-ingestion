@@ -2,7 +2,7 @@ name: Trigger Eva Assembly Ingestion Integration Tests
 
 on:
   push:
-    branches: [master]
+    branches: [main]
   # Allow manual trigger from github
   workflow_dispatch:
 
