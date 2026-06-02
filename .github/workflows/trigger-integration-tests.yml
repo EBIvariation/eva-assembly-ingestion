@@ -6,6 +6,9 @@ on:
   # Allow manual trigger from github
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   trigger-integration-tests:
     runs-on: ubuntu-latest
