@@ -1,8 +1,8 @@
-## 0.2.2 (unreleased)
+## 0.3.0 (2026-06-17)
 
-
-- Nothing changed yet.
-
+- Output path to include the release version
+- Bug fixes in CI 
+- Change to use java 21 
 
 ## 0.2.1 (2026-04-15)
 
