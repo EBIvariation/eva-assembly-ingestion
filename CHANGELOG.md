@@ -1,3 +1,9 @@
+## 0.3.1 (unreleased)
+
+
+- Nothing changed yet.
+
+
 ## 0.3.0 (2026-06-17)
 
 - Output path to include the release version
