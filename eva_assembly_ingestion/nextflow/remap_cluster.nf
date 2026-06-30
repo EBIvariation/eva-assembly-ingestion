@@ -178,8 +178,7 @@ process update_target_genome {
 process extract_vcf_from_mongo {
     label 'long_time', 'med_mem'
 
-    clusterOptions "-o $params.output_dir/logs/${log_filename}.log \
-                    -e $params.output_dir/logs/${log_filename}.err"
+    clusterOptions "-o $params.output_dir/logs/${log_filename}.log", "-e $params.output_dir/logs/${log_filename}.err"
 
     input:
     tuple val(source_assembly_accession), val(taxonomy), path(source_fasta), path(source_report)
@@ -255,8 +254,7 @@ process remap_variants {
 process ingest_vcf_into_mongo {
     label 'long_time', 'med_mem'
 
-    clusterOptions "-o $params.output_dir/logs/${log_filename}.log \
-                    -e $params.output_dir/logs/${log_filename}.err"
+    clusterOptions "-o $params.output_dir/logs/${log_filename}.log", "-e $params.output_dir/logs/${log_filename}.err"
 
     // Run ingestions in serial to avoid race conditions when writing variants to Mongo.
     // Note this applies across source assemblies as well as across EVA/dbSNP from the same assembly.
@@ -314,8 +312,7 @@ process gather_counts {
 process process_remapped_variants {
     label 'long_time', 'med_mem'
 
-    clusterOptions "-o $params.output_dir/logs/${log_filename}.log \
-                    -e $params.output_dir/logs/${log_filename}.err"
+    clusterOptions "-o $params.output_dir/logs/${log_filename}.log", "-e $params.output_dir/logs/${log_filename}.err"
 
     input:
     val ingestion_output
@@ -341,8 +338,7 @@ process process_remapped_variants {
 process cluster_unclustered_variants {
     label 'long_time', 'med_mem'
 
-    clusterOptions "-o $params.output_dir/logs/${log_filename}.log \
-                    -e $params.output_dir/logs/${log_filename}.err"
+    clusterOptions "-o $params.output_dir/logs/${log_filename}.log", "-e $params.output_dir/logs/${log_filename}.err"
 
     input:
     val start_flag
@@ -371,8 +367,7 @@ process cluster_unclustered_variants {
 process qc_process_remapped {
     label 'long_time', 'med_mem'
 
-    clusterOptions "-o $params.output_dir/logs/${log_filename}.log \
-                    -e $params.output_dir/logs/${log_filename}.err"
+    clusterOptions "-o $params.output_dir/logs/${log_filename}.log", "-e $params.output_dir/logs/${log_filename}.err"
 
     input:
     path rs_report
@@ -396,8 +391,7 @@ process qc_process_remapped {
 process qc_clustering {
     label 'long_time', 'med_mem'
 
-    clusterOptions "-o $params.output_dir/logs/${log_filename}.log \
-                    -e $params.output_dir/logs/${log_filename}.err"
+    clusterOptions "-o $params.output_dir/logs/${log_filename}.log", "-e $params.output_dir/logs/${log_filename}.err"
 
     input:
     path rs_report
@@ -421,8 +415,7 @@ process qc_clustering {
 process qc_clustering_duplicate_rs_acc {
     label 'long_time', 'med_mem'
 
-    clusterOptions "-o $params.output_dir/logs/${log_filename}.log \
-                    -e $params.output_dir/logs/${log_filename}.err"
+    clusterOptions "-o $params.output_dir/logs/${log_filename}.log", "-e $params.output_dir/logs/${log_filename}.err"
 
     input:
     path rs_report
@@ -454,8 +447,7 @@ process qc_clustering_duplicate_rs_acc {
 process backpropagate_clusters {
     label 'long_time', 'med_mem'
 
-    clusterOptions "-o $params.output_dir/logs/${log_filename}.log \
-                    -e $params.output_dir/logs/${log_filename}.err"
+    clusterOptions "-o $params.output_dir/logs/${log_filename}.log", "-e $params.output_dir/logs/${log_filename}.err"
 
     input:
     tuple val(source_assembly_accession), val(taxonomy_list)
