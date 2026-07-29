@@ -252,7 +252,10 @@ class AssemblyIngestionJob(AppLogger):
         return output_file_path
 
     def create_clustering_properties(self, output_file_path):
-        properties = self.properties_generator.get_clustering_properties(target_assembly=self.target_assembly)
+        properties = self.properties_generator.get_clustering_properties(
+            target_assembly=self.target_assembly,
+            rs_report_path=f'{self.target_assembly}_rs_report.txt'
+        )
         with open(output_file_path, 'w') as open_file:
             open_file.write(properties)
         return output_file_path
