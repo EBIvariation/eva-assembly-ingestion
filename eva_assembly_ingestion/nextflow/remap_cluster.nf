@@ -272,6 +272,8 @@ process ingest_vcf_into_mongo {
     script:
     log_filename = "${remapped_vcf}_ingestion"
     """
+    set -eo pipefail
+
     # Check the file name to know which database to load the variants into
     if [[ $remapped_vcf == *_eva_remapped.vcf ]]
     then
@@ -383,9 +385,11 @@ process qc_process_remapped {
     script:
     log_filename = "${params.target_assembly_accession}_process_remapped_qc"
     """
+    set -eo pipefail
     java -Xmx${task.memory.toGiga()-1}G -jar $params.jar.clustering \
         --spring.config.location=file:${params.clustering_properties} \
         --spring.batch.job.names=NEW_CLUSTERED_VARIANTS_QC_JOB \
+        --parameters.rsReportPath=${rs_report} \
         | tee ${log_filename}.log
     """
 }
@@ -408,9 +412,11 @@ process qc_clustering {
     script:
     log_filename = "${params.target_assembly_accession}_clustering_qc"
     """
+    set -eo pipefail
     java -Xmx${task.memory.toGiga()-1}G -jar $params.jar.clustering \
         --spring.config.location=file:${params.clustering_properties} \
         --spring.batch.job.names=NEW_CLUSTERED_VARIANTS_QC_JOB \
+        --parameters.rsReportPath=${rs_report} \
         | tee ${log_filename}.log
     """
 }
@@ -433,9 +439,11 @@ process qc_clustering_duplicate_rs_acc {
     script:
     log_filename = "${params.target_assembly_accession}_clustering_qc_duplicate_rs_acc"
     """
+    set -eo pipefail
     java -Xmx${task.memory.toGiga()-1}G -jar $params.jar.clustering \
          --spring.config.location=file:${params.clustering_properties} \
          --spring.batch.job.names=DUPLICATE_RS_ACC_QC_JOB \
+         --parameters.rsAccFile=${rs_report} \
          --parameters.duplicateRSAccFile=${params.target_assembly_accession}_duplicate_rs_accessions.txt \
          | tee ${log_filename}.log
 
