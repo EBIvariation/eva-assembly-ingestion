@@ -1,7 +1,7 @@
-## 0.3.1 (unreleased)
+## 0.3.1 (2026-07-30)
 
 
-- Nothing changed yet.
+- Bug fixes in Nextflow pipeline
 
 
 ## 0.3.0 (2026-06-17)
